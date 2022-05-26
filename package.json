@@ -1,7 +1,7 @@
 {
   "name": "final-project-team-4",
   "version": "1.0.0",
-  "description": "Final project canvas like app",
+  "description": "CS493 final project Tarpaulin API",
   "main": "server.js",
   "directories": {
     "lib": "lib",
