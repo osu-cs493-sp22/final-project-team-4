@@ -25,31 +25,59 @@ exports.insertNewUser = async function insertNewUser(user){
 exports.getUserById = async function getUserById(userid){
     const db = getDbReference()
     const collection = db.collection('users')
+    const classCollection = db.collection('courses')
     const users = await collection.find({
         _id: new ObjectId(userid)
     }).toArray()
     if(users[0]){ //if a user exists
         if(users[0].role === "instructor"){ //if its an instructor add courses they teach
-            const instructors = await collection.aggregate([
-                { $match: { _id: new ObjectId(id) } },
-                {
-                    $lookup: {
-                        from: "courses",
-                        localField: "_id",
-                        foreignField: "instructorId",
-                        as: "reviews"
-                    }
+            let curClasses = []
+            const classes = await classCollection.find().toArray() // get list of classes
+            classes.forEach(eachClass => {
+                if (users[0]._id == eachClass.instructorId){
+                    curClasses.push(eachClass._id)
                 }
-            ]).toArray()
+            })
+            users[0].classes = curClasses
+            return users[0]
+            // const instructors = await collection.aggregate([
+            //     { $match: { _id: new ObjectId(id) } },
+            //     {
+            //         $lookup: {
+            //             from: "courses",
+            //             localField: "_id",
+            //             foreignField: "instructorId",
+            //             as: "reviews"
+            //         }
+            //     }
+            // ]).toArray()
 
-            return instructors[0]
+            // return instructors[0]
         }
         
         if(users[0].role === "student"){ //if user is student add all their classes
-            //not quite sure how to do it as the userid are going to be in a list
-            return users[o]
+            let curClasses = []
+            const classes = await classCollection.find().toArray() //has a list of all classes
+            classes.forEach(eachClass => { //looks at each class
+                eachClass.students.forEach(student => { //looks all students in student list
+                    if(users[0]._id == student){
+                        curClasses.push(student)
+                    }
+                })
+            });
+            users[0].classes = curClasses
+            return users[0]
         }
     }else{
         return users[0]
     }
+}
+
+exports.getUserByEmail= async function(userEmail){
+    const db = getDbReference()
+    const collection = db.collection('users')
+    const users = await collection.find({
+        email: userEmail
+    }).toArray()
+    return users[0]
 }
