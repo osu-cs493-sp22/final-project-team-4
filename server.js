@@ -39,30 +39,35 @@ async function rateLimit(req, res, next) {
   //  tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
   //  last: parseInt(tokenBucket.last) || Date.now(),
   //};
-  }
+
   tokenBucket = {
     tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
     last: parseInt(tokenBucket.last) || Date.now(),
   };
-  console.log("== tokenBucket:", tokenBucket)
-  
-  const now = Date.now()
-  const ellapsedMs = now - tokenBucket.last
-  tokenBucket.tokens += ellapsedMs * (rateLimitWindowMaxRequests / rateLimitWindowMilliseconds)
-  tokenBucket.tokens = Math.min(rateLimitWindowMaxRequests, tokenBucket.tokens)
-  tokenBucket.last = now
+  console.log("== tokenBucket:", tokenBucket);
+
+  const now = Date.now();
+  const ellapsedMs = now - tokenBucket.last;
+  tokenBucket.tokens +=
+    ellapsedMs * (rateLimitWindowMaxRequests / rateLimitWindowMilliseconds);
+  tokenBucket.tokens = Math.min(rateLimitWindowMaxRequests, tokenBucket.tokens);
+  tokenBucket.last = now;
 
   if (tokenBucket.tokens >= 1) {
-    tokenBucket.tokens -= 1
-    await redisClient.hSet(ip, [['tokens', tokenBucket.tokens], ['last', tokenBucket.last]])
-    
+    tokenBucket.tokens -= 1;
+    await redisClient.hSet(ip, [
+      ["tokens", tokenBucket.tokens],
+      ["last", tokenBucket.last],
+    ]);
   } else {
-    await redisClient.hSet(ip, [['tokens', tokenBucket.tokens], ['last', tokenBucket.last]])
+    await redisClient.hSet(ip, [
+      ["tokens", tokenBucket.tokens],
+      ["last", tokenBucket.last],
+    ]);
     res.status(429).send({
-      err: "too many requests per minute"
-    })
+      err: "too many requests per minute",
+    });
   }
-
 }
 
 app.use(rateLimit);
