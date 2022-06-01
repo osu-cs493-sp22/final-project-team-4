@@ -16,7 +16,7 @@ const redisPort = process.env.REDIS_PORT || "6379";
 const redisClient = redis.createClient(redisHost, redisPort);
 const rateLimitWindowMaxRequests = 10; //per ip
 const rateLimitWindowMilliseconds = 60000; // 1 minute
-const authUserrateLimitWindowMaxRequests = 30; //per user
+const authUserRateLimitWindowMaxRequests = 30; //per user
 
 async function rateLimit(req, res, next) {
   ip = req.ip;
@@ -29,7 +29,17 @@ async function rateLimit(req, res, next) {
     next();
     return;
   }
-
+  //if (check if user is authenticated) {
+  //   tokenBucket = {
+  //  tokens: parseFloat(tokenBucket.tokens) || authUserRateLimitWindowMaxRequests,
+  //  last: parseInt(tokenBucket.last) || Date.now(),
+  //};
+  //} else {
+  //   tokenBucket = {
+  //  tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
+  //  last: parseInt(tokenBucket.last) || Date.now(),
+  //};
+  }
   tokenBucket = {
     tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
     last: parseInt(tokenBucket.last) || Date.now(),
