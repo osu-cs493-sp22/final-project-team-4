@@ -15,5 +15,10 @@ docker run --rm -it --network mongo-net mongo:latest mongo --host mongo-server -
 
 
 
+
 # for courses only to add the data in courses.json to mongodb 
 npm run initdb
+=======
+redis
+docker run -d --name redis-server -p 6379:6379 redis:latest
+
