@@ -4,6 +4,7 @@ const { getDbReference } = require('../lib/mongo')
 const { extractValidFields } = require('../lib/validation')
 
 const CourseSchema = {
+    courseid: { required: true },
     subject: { required: true },
     number: { required: true },
     title: { required: true },
@@ -14,10 +15,41 @@ const CourseSchema = {
 }
 exports.CourseSchema = CourseSchema
 
+// Compute last page number and make sure page is within allowed bounds.
+// Compute offset into collection.
+async function getCoursesPage(page) {
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    const count = await collection.countDocuments()
+
+    // Compute last page number and make sure page is within allowed bounds.
+    // Compute offset into collection.
+    const pageSize = 10
+    const lastPage = Math.ceil(count / pageSize)
+    page = page > lastPage ? lastPage : page
+    page = page < 1 ? 1 : page
+    const offset = (page - 1) * pageSize
+
+    const results = await collection.find({})
+        .sort({ _id: 1 })
+        .skip(offset)
+        .limit(pageSize)
+        .toArray()
+
+    return {
+        courses: results,
+        page: page,
+        totalPages: lastPage,
+        pageSize: pageSize,
+        count: count
+    }
+}
+exports.getCoursesPage = getCoursesPage
+
 //add new course id
 exports.insertNewCourse = async function insertNewCourse(course) {
     const db = getDbReference()
-    const collection = db.collection('course')
+    const collection = db.collection('courses')
 
     user = extractValidFields(course, CourseSchema)
     const result = await collection.insertOne(course)
@@ -27,9 +59,10 @@ exports.insertNewCourse = async function insertNewCourse(course) {
 //get course by id
 exports.getCourseById = async function getCourseById(courseid) {
     const db = getDbReference()
-    const collection = db.collection('course')
+    const collection = db.collection('courses')
     const courses = await collection.find({
-        _id: new ObjectId(courseid)
+        // _id: new ObjectId(courseid)
+        courseid: courseid
     }).toArray()
     if (courses[0]) { //if a course exists
         return courses[0]
@@ -38,7 +71,19 @@ exports.getCourseById = async function getCourseById(courseid) {
     }
 }
 
-//remove course id 
+async function bulkInsertNewCourses(courses) {
+    const coursesToInsert = courses.map(function (course) {
+      return extractValidFields(course, CourseSchema)
+    })
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    const result = await collection.insertMany(coursesToInsert)
+    return result.insertedIds
+  }
+  exports.bulkInsertNewCourses = bulkInsertNewCourses
+
+  
+//remove course id
 
 
 // possibly required functions
@@ -52,7 +97,7 @@ exports.getCourseById = async function getCourseById(courseid) {
 // remove course number
 
 // get course title from given course in the database
-// add course title 
+// add course title
 // remove course title
 
 // get term id from given course in the database
@@ -60,7 +105,7 @@ exports.getCourseById = async function getCourseById(courseid) {
 // remove term id
 
 // get Instructor id from given course in the database
-// add instructor id 
+// add instructor id
 // remove instructor id
 
 // get List of Students taking the course
@@ -68,6 +113,6 @@ exports.getCourseById = async function getCourseById(courseid) {
 // remove student from usersList (check for usertype)
 
 // get list of assignments from the course
-// add assignment to course database 
+// add assignment to course database
 // remove assignment from course in the database
 

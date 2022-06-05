@@ -1,0 +1,40 @@
+[
+    {
+        "courseid": 1111,
+        "subject": "CS",
+        "number": "450",
+        "title": "Computer Architecture",
+        "term": "Spring 2022",
+        "instructorid": 123,
+        "liststudent": [
+            111,
+            333,
+            555
+        ],
+        "listassignments": [
+            1,
+            2,
+            3
+        ]
+    },
+    {
+        "courseid": 2222,
+        "subject": "CS",
+        "number": "101",
+        "title": "Intro to Computer Science",
+        "term": "Spring 2022",
+        "instructorid": 123,
+        "liststudent": [
+            111,
+            222,
+            333,
+            777
+        ],
+        "listassignments": [
+            1,
+            2,
+            3,
+            4
+        ]
+    }
+]
