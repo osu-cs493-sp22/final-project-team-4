@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const redis = require("redis");
+const jwt = require("jsonwebtoken");
 
 const api = require("./api");
 const { connectToDb } = require("./lib/mongo");
@@ -18,30 +19,17 @@ const rateLimitWindowMaxRequests = 10; //per ip
 const rateLimitWindowMilliseconds = 60000; // 1 minute
 const authUserRateLimitWindowMaxRequests = 30; //per user
 
-async function rateLimit(req, res, next) {
-  ip = req.ip;
-
-  let tokenBucket;
-
-  try {
-    tokenBucket = await redisClient.hGetAll(ip);
+function manageBucket(maxRequest, perBasis) {
+   let tokenBucket;
+    try {
+    tokenBucket = await redisClient.hGetAll(perBasis);
   } catch (error) {
     next();
     return;
   }
-  //if (check if user is authenticated) {
-  //   tokenBucket = {
-  //  tokens: parseFloat(tokenBucket.tokens) || authUserRateLimitWindowMaxRequests,
-  //  last: parseInt(tokenBucket.last) || Date.now(),
-  //};
-  //} else {
-  //   tokenBucket = {
-  //  tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
-  //  last: parseInt(tokenBucket.last) || Date.now(),
-  //};
 
   tokenBucket = {
-    tokens: parseFloat(tokenBucket.tokens) || rateLimitWindowMaxRequests,
+    tokens: parseFloat(tokenBucket.tokens) || maxRequest,
     last: parseInt(tokenBucket.last) || Date.now(),
   };
   console.log("== tokenBucket:", tokenBucket);
@@ -49,24 +37,42 @@ async function rateLimit(req, res, next) {
   const now = Date.now();
   const ellapsedMs = now - tokenBucket.last;
   tokenBucket.tokens +=
-    ellapsedMs * (rateLimitWindowMaxRequests / rateLimitWindowMilliseconds);
-  tokenBucket.tokens = Math.min(rateLimitWindowMaxRequests, tokenBucket.tokens);
+    ellapsedMs * (maxRequest / rateLimitWindowMilliseconds);
+  tokenBucket.tokens = Math.min(maxRequest, tokenBucket.tokens);
   tokenBucket.last = now;
 
   if (tokenBucket.tokens >= 1) {
     tokenBucket.tokens -= 1;
-    await redisClient.hSet(ip, [
+    await redisClient.hSet(perBasis, [
       ["tokens", tokenBucket.tokens],
       ["last", tokenBucket.last],
+      next(),
     ]);
   } else {
-    await redisClient.hSet(ip, [
+    await redisClient.hSet(perBasis, [
       ["tokens", tokenBucket.tokens],
       ["last", tokenBucket.last],
     ]);
     res.status(429).send({
       err: "too many requests per minute",
     });
+  }
+}
+
+
+async function rateLimit(req, res, next) {
+  const authHeader = req.get("authorization") || "";
+  const authParts = authHeader.split(" ");
+  const token = authParts[0] === "Bearer" ? authParts[1] : nullS;
+  const payload = jwt.verify(token, "SuperSecret");
+  console.log("== payload:", payload);
+  const userId = payload.sub;
+  const ip = req.ip;
+
+  if (userId) {
+   manageBucket(userId, authUserRateLimitWindowMaxRequests)
+  } else {
+   manageBucket(ip, rateLimitWindowMaxRequests)
   }
 }
 
