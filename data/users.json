@@ -1,0 +1,68 @@
+[
+    {
+        "name": "John Doe 1",
+        "email": "johndoe1@oregonstate.edu",
+        "password": "hunter2",
+        "role": "admin"
+    },
+    {
+        "name": "John Doe 2",
+        "email": "johndoe2@oregonstate.edu",
+        "password": "hunter2",
+        "role": "instructor"
+    },
+    {
+        "name": "John Doe 3",
+        "email": "johndoe3@oregonstate.edu",
+        "password": "hunter2",
+        "role": "instructor"
+    },
+    {
+        "name": "John Doe 4",
+        "email": "johndoe4@oregonstate.edu",
+        "password": "hunter2",
+        "role": "instructor"
+    },
+    {
+        "name": "John Doe 5",
+        "email": "johndoe5@oregonstate.edu",
+        "password": "hunter2",
+        "role": "instructor"
+    },
+    {
+        "name": "John Doe 6",
+        "email": "johndoe6@oregonstate.edu",
+        "password": "hunter2",
+        "role": "instructor"
+    },
+    {
+        "name": "John Doe 7",
+        "email": "johndoe7@oregonstate.edu",
+        "password": "hunter2",
+        "role": "student"
+    },
+    {
+        "name": "John Doe 8",
+        "email": "johndoe8@oregonstate.edu",
+        "password": "hunter2",
+        "role": "student"
+    },
+    {
+        "name": "John Doe 9",
+        "email": "johndoe9@oregonstate.edu",
+        "password": "hunter2",
+        "role": "student"
+    },
+    {
+        "name": "John Doe 10",
+        "email": "johndoe10@oregonstate.edu",
+        "password": "hunter2",
+        "role": "student"
+    },
+    {
+        "name": "John Doe 11",
+        "email": "johndoe11@oregonstate.edu",
+        "password": "hunter2",
+        "role": "student"
+    }
+]

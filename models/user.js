@@ -40,19 +40,6 @@ exports.getUserById = async function getUserById(userid){
             })
             users[0].classes = curClasses
             return users[0]
-            // const instructors = await collection.aggregate([
-            //     { $match: { _id: new ObjectId(id) } },
-            //     {
-            //         $lookup: {
-            //             from: "courses",
-            //             localField: "_id",
-            //             foreignField: "instructorId",
-            //             as: "reviews"
-            //         }
-            //     }
-            // ]).toArray()
-
-            // return instructors[0]
         }
         
         if(users[0].role === "student"){ //if user is student add all their classes
@@ -73,11 +60,18 @@ exports.getUserById = async function getUserById(userid){
     }
 }
 
-exports.getUserByEmail= async function(userEmail){
+exports.getUserByEmail = async function(userEmail){
     const db = getDbReference()
     const collection = db.collection('users')
     const users = await collection.find({
         email: userEmail
     }).toArray()
     return users[0]
+}
+
+exports.bulkInsertNewUsers = async function(users) {
+    const db = getDbReference()
+    const collection = db.collection('users')
+    const result = await collection.insertMany(users)
+    return result.insertedIds
 }

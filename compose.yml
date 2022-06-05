@@ -1,4 +1,7 @@
 services:
+  redis:
+    image: redis
+
   db:
     image: mongo
     environment:
@@ -19,6 +22,7 @@ services:
     depends_on:
       - db
     restart: on-failure
+    command: npm run initdb
 
   api:
     build: .
@@ -29,6 +33,9 @@ services:
       MONGO_USER: ${MONGO_USER}
       MONGO_PASSWORD: ${MONGO_PASSWORD}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
+      REDIS_HOST: redis
     depends_on:
       - db
+      - db-init
+      - redis
     restart: on-failure
