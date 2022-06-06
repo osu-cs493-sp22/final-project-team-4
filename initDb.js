@@ -4,6 +4,8 @@ const { bulkInsertNewCourses } = require('./models/course')
 
 const coursesData = require('./data/courses.json')
 const userData = require('./data/users.json')
+const assignmentData = require('./data/assignments.json')
+const { bulkInsertNewAssignments } = require('./models/assignment')
 
 const mongoCreateUser = process.env.MONGO_CREATE_USER
 const mongoCreatePassword = process.env.MONGO_CREATE_PASSWORD
@@ -24,6 +26,12 @@ connectToDb(async function () {
    */
   const courseIds = await bulkInsertNewCourses(coursesData)
   console.log("== Inserted courses with IDs:", courseIds)
+
+  /*
+   * Insert initial assignments data into the database
+   */
+  const assignmentIds = await bulkInsertNewAssignments(assignmentData)
+  console.log("== Inserted assignments with IDs:", assignmentIds)
 
 
   if (mongoCreateUser && mongoCreatePassword) {
