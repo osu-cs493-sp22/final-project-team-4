@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+
 const redis = require("redis");
 const jwt = require("jsonwebtoken");
 
@@ -13,13 +14,13 @@ const port = process.env.PORT || 8000;
  * Redis ports and functions
  */
 const redisHost = process.env.REDIS_HOST;
-const redisPort = process.env.REDIS_PORT || "6379";
+const redisPort = process.env.REDIS_PORT || '6379';
 const redisClient = redis.createClient(redisHost, redisPort);
 const rateLimitWindowMaxRequests = 10; //per ip
 const rateLimitWindowMilliseconds = 60000; // 1 minute
 const authUserRateLimitWindowMaxRequests = 30; //per user
 
-function manageBucket(maxRequest, perBasis) {
+async function manageBucket(maxRequest, perBasis) {
    let tokenBucket;
     try {
     tokenBucket = await redisClient.hGetAll(perBasis);
@@ -98,11 +99,11 @@ app.use("*", function (req, res, next) {
   });
 });
 
-connectToDb(function () {
-  app.listen(port, function () {
-    console.log("== Server is running on port", port);
-  });
-});
+//connectToDb(function () {
+//  app.listen(port, function () {
+//    console.log("== Server is running on port", port);
+//  });
+//});
 
 redisClient.connect().then(function () {
   app.listen(port, () => {
