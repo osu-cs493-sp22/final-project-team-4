@@ -1,0 +1,34 @@
+[
+    {
+        "assignmentId": 1,
+        "description": "create an architecture",
+        "courseId": 1,
+        "title": "Assignment 1",
+        "points": 100,
+        "due": "2022-06-14T17:00:00-07:00"
+    },
+    {
+        "assignmentId": 2,
+        "description": "create a different architecture",
+        "courseId": 1,
+        "title": "Assignment 2",
+        "points": 100,
+        "due": "2022-06-14T17:00:00-07:00"
+    },
+    {
+        "assignmentId": 3,
+        "description": "Learn C",
+        "courseId": 2,
+        "title": "Assignment 1",
+        "points": 100,
+        "due": "2022-06-14T17:00:00-07:00"
+    },
+    {
+        "assignmentId": 4,
+        "description": "Learn Python",
+        "courseId": 2,
+        "title": "Assignment 2",
+        "points": 100,
+        "due": "2022-06-14T17:00:00-07:00"
+    }
+]

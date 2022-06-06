@@ -12,71 +12,71 @@ const port = process.env.PORT || 8000;
 /**
  * Redis ports and functions
  */
-const redisHost = process.env.REDIS_HOST;
-const redisPort = process.env.REDIS_PORT || "6379";
-const redisClient = redis.createClient(redisHost, redisPort);
-const rateLimitWindowMaxRequests = 10; //per ip
-const rateLimitWindowMilliseconds = 60000; // 1 minute
-const authUserRateLimitWindowMaxRequests = 30; //per user
+// const redisHost = process.env.REDIS_HOST;
+// const redisPort = process.env.REDIS_PORT || "6379";
+// const redisClient = redis.createClient(redisHost, redisPort);
+// const rateLimitWindowMaxRequests = 10; //per ip
+// const rateLimitWindowMilliseconds = 60000; // 1 minute
+// const authUserRateLimitWindowMaxRequests = 30; //per user
 
-function manageBucket(maxRequest, perBasis) {
-   let tokenBucket;
-    try {
-    tokenBucket = await redisClient.hGetAll(perBasis);
-  } catch (error) {
-    next();
-    return;
-  }
+// async function manageBucket(maxRequest, perBasis) {
+//    let tokenBucket;
+//     try {
+//     tokenBucket = await redisClient.hGetAll(perBasis);
+//   } catch (error) {
+//     next();
+//     return;
+//   }
 
-  tokenBucket = {
-    tokens: parseFloat(tokenBucket.tokens) || maxRequest,
-    last: parseInt(tokenBucket.last) || Date.now(),
-  };
-  console.log("== tokenBucket:", tokenBucket);
+//   tokenBucket = {
+//     tokens: parseFloat(tokenBucket.tokens) || maxRequest,
+//     last: parseInt(tokenBucket.last) || Date.now(),
+//   };
+//   console.log("== tokenBucket:", tokenBucket);
 
-  const now = Date.now();
-  const ellapsedMs = now - tokenBucket.last;
-  tokenBucket.tokens +=
-    ellapsedMs * (maxRequest / rateLimitWindowMilliseconds);
-  tokenBucket.tokens = Math.min(maxRequest, tokenBucket.tokens);
-  tokenBucket.last = now;
+//   const now = Date.now();
+//   const ellapsedMs = now - tokenBucket.last;
+//   tokenBucket.tokens +=
+//     ellapsedMs * (maxRequest / rateLimitWindowMilliseconds);
+//   tokenBucket.tokens = Math.min(maxRequest, tokenBucket.tokens);
+//   tokenBucket.last = now;
 
-  if (tokenBucket.tokens >= 1) {
-    tokenBucket.tokens -= 1;
-    await redisClient.hSet(perBasis, [
-      ["tokens", tokenBucket.tokens],
-      ["last", tokenBucket.last],
-      next(),
-    ]);
-  } else {
-    await redisClient.hSet(perBasis, [
-      ["tokens", tokenBucket.tokens],
-      ["last", tokenBucket.last],
-    ]);
-    res.status(429).send({
-      err: "too many requests per minute",
-    });
-  }
-}
+//   if (tokenBucket.tokens >= 1) {
+//     tokenBucket.tokens -= 1;
+//     await redisClient.hSet(perBasis, [
+//       ["tokens", tokenBucket.tokens],
+//       ["last", tokenBucket.last],
+//       next(),
+//     ]);
+//   } else {
+//     await redisClient.hSet(perBasis, [
+//       ["tokens", tokenBucket.tokens],
+//       ["last", tokenBucket.last],
+//     ]);
+//     res.status(429).send({
+//       err: "too many requests per minute",
+//     });
+//   }
+// }
 
 
-async function rateLimit(req, res, next) {
-  const authHeader = req.get("authorization") || "";
-  const authParts = authHeader.split(" ");
-  const token = authParts[0] === "Bearer" ? authParts[1] : nullS;
-  const payload = jwt.verify(token, "SuperSecret");
-  console.log("== payload:", payload);
-  const userId = payload.sub;
-  const ip = req.ip;
+// async function rateLimit(req, res, next) {
+//   const authHeader = req.get("authorization") || "";
+//   const authParts = authHeader.split(" ");
+//   const token = authParts[0] === "Bearer" ? authParts[1] : nullS;
+//   const payload = jwt.verify(token, "SuperSecret");
+//   console.log("== payload:", payload);
+//   const userId = payload.sub;
+//   const ip = req.ip;
 
-  if (userId) {
-   manageBucket(userId, authUserRateLimitWindowMaxRequests)
-  } else {
-   manageBucket(ip, rateLimitWindowMaxRequests)
-  }
-}
+//   if (userId) {
+//    manageBucket(userId, authUserRateLimitWindowMaxRequests)
+//   } else {
+//    manageBucket(ip, rateLimitWindowMaxRequests)
+//   }
+// }
 
-app.use(rateLimit);
+// app.use(rateLimit);
 /*
  * Morgan is a popular logger.
  */

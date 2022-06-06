@@ -4,6 +4,7 @@ const { getDbReference } = require("../lib/mongo");
 const { extractValidFields } = require("../lib/validation");
 
 const assignmentSchema = {
+  description: { required: true },
   courseId: { requires: true },
   title: { require: true },
   points: { require: true },
