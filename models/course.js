@@ -71,6 +71,43 @@ exports.getCourseById = async function getCourseById(courseid) {
     }
 }
 
+// delete course by id
+exports.deleteCourseById = async function deleteCourseById(courseid) {
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    const courses = await collection.find({
+        // _id: new ObjectId(courseid)
+        courseid: courseid
+    }).toArray()
+    if (courses[0]) { //if a course exists
+        const result = await collection.deleteOne(
+            { courseid: courseid },
+        );
+        if (result.deletedCount == 1) {
+            return true
+        } else {
+            return true
+        }
+    } else {
+        return false
+    }
+}
+
+// check if course exists by id
+exports.checkIfCourseExistById = async function checkIfCourseExistById(courseid) {
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    const courses = await collection.find({
+        // _id: new ObjectId(courseid)
+        "courseid": courseid
+    }).toArray()
+    if (courses[0]) { //if a course exists
+        return true
+    } else {
+        return false
+    }
+}
+
 async function bulkInsertNewCourses(courses) {
     const coursesToInsert = courses.map(function (course) {
       return extractValidFields(course, CourseSchema)
@@ -82,10 +119,8 @@ async function bulkInsertNewCourses(courses) {
   }
   exports.bulkInsertNewCourses = bulkInsertNewCourses
 
-  
-//remove course id
 
-
+// TODO: FIXME:
 // possibly required functions
 
 // get course subject from given course in the database
