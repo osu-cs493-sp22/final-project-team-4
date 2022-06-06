@@ -1,13 +1,35 @@
 const { Router } = require('express')
 const { getDbReference } = require('../lib/mongo')
+const multer = require('multer')
+const crypto = require('crypto')
+
+const fileTypes = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png'
+}
+
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: `${__dirname}/uploads`,
+        filename: function (req, file, callback) {
+            const ext = fileTypes[file.mimetype]
+            const filename = crypto.pseudoRandomBytes(16).toString('hex')
+            callback(null, `${filename}.${ext}`)
+        }
+    }),
+    fileFilter: function (req, file, callback) {
+        callback(null, !!fileTypes[file.mimetype])
+    }
+})
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewAssignment, getAssignmentById, assignmentSchema, getAssignmentAndSubmissionById } = require('../models/assignment')
-const{submissionSchema,insertNewSubmission} = require('../models/submission')
+const { insertNewAssignment, getAssignmentById, assignmentSchema, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse } = require('../models/assignment')
+const { submissionSchema, insertNewSubmission, savePhotoFile} = require('../models/submission')
+const { requireAuthentication, isUserStudent } = require('../lib/auth')
 const router = Router()
 
 router.post('/', async function (req, res, next) {
-    if (validateAgainstSchema(req.body, LodgingSchema)) {
+    if (validateAgainstSchema(req.body, assignmentSchema)) {
         const id = await insertNewAssignment(req.body)
         res.status(201).send({ id: id })
     } else {
@@ -45,8 +67,42 @@ router.delete('/:courseid', async function (req, res, next) {
 router.get('/:courseid/submissions', async function (req, res, next)  {
 
 })
-router.post('/:courseid/submissions', async function (req, res, next) {
 
+router.post('/:courseid/submissions', requireAuthentication, upload.single('image'),  async function (req, res, next) {
+    // console.log("== req.file:", req.file)
+    // console.log("== req.body:", req.body)
+    const courseId = parseInt(req.params.courseid)
+    // console.log(courseId)
+    if(isStudentAndAssignmentInCourse(req.body.studentId, req.body.assignmentId, courseId) 
+        && isUserStudent 
+        && req.user == req.body.studentId
+    ){
+        if (req.file && req.body && req.body.assignmentId && req.body.studentId ) {
+            const event = new Date()
+            const photo = {
+                assignmentId: req.body.assignmentId,
+                studentId: req.body.studentId,
+                timestamp: event.toISOString(),
+                path: req.file.path,
+                file: req.file.filename,
+                mimetype: req.file.mimetype
+            }
+            const id = await savePhotoFile(photo)
+    
+            const filenameId = req.file.filename.split(".")
+            res.status(200).send({ 
+                id: id,
+                // downloadPath: `${id}.${filenameId[1]}`
+            })
+        } else {
+            res.status(400).send({
+                err: 'Request body needs "file submission", a "assignmentId", and a "studentId"'
+            })
+        }
+    }else {
+        res.status(403).send({ err: "request not made by authenticated user" })
+    }
+    
 })
 
 module.exports = router
