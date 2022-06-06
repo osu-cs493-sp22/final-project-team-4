@@ -5,7 +5,8 @@ const { Router } = require('express')
 const { getDbReference } = require('../lib/mongo')
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage } = require('../models/course')
+const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById } = require('../models/course')
+
 
 const router = Router()
 
@@ -58,10 +59,16 @@ router.get('/', async (req, res) => {
  * POST /courses - Route to create a new courses.
  */
 router.post('/', async (req, res) => {
-    // TODO: FIXME:
     if (validateAgainstSchema(req.body, CourseSchema)) {
+        const courseid = parseInt(req.body.courseid);
+        if (await checkIfCourseExistById(courseid)) {
+            res.status(200).send({
+                error: "id: " + req.body.courseid + " already exist. Will not create new one."
+            })
+            return;
+        }
         try {
-            const id = await insertNewcourses(req.body)
+            const id = await insertNewCourse(req.body)
             res.status(201).send({
                 id: id
             })
@@ -103,8 +110,31 @@ router.get('/:courseid', async (req, res, next) => {
 //
 router.put('/:courseid', async (req, res, next) => {
     const courseid = parseInt(req.params.courseid);
-    // TODO: FIXME:
-    res.status(200).send({ "courseid": courseid })
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            if (deleteCourseById(courseid)) {
+                // just deleted a course
+                // now add new one
+                const id = await insertNewCourse(req.body)
+                res.status(200).send({
+                    "courseid": courseid,
+                    id: id
+                });
+            } else {
+                res.status(500).send({
+                    error: "Unable to delete courses."
+                })
+            }
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch courses.  Please try again later."
+        })
+    }
 })
 
 //
@@ -112,8 +142,25 @@ router.put('/:courseid', async (req, res, next) => {
 //
 router.delete('/:courseid', async (req, res, next) => {
     const courseid = parseInt(req.params.courseid);
-    // TODO: FIXME:
-    res.status(200).send({ "courseid": courseid })
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            if (await deleteCourseById(courseid)) {
+                res.status(200).send({ "courseid": courseid });
+            } else {
+                res.status(500).send({
+                    error: "Unable to delete courses."
+                })
+            }
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch courses.  Please try again later."
+        })
+    }
 })
 
 module.exports = router;
