@@ -4,12 +4,12 @@ const { getDbReference } = require('../lib/mongo')
 const { extractValidFields } = require('../lib/validation')
 
 const CourseSchema = {
-    courseid: { required: true },
+    courseId: { required: true },
     subject: { required: true },
     number: { required: true },
     title: { required: true },
     term: { required: true },
-    instructorid: { required: true },
+    instructorId: { required: true },
     liststudent: { required: true },
     listassignments: { required: true },
 }

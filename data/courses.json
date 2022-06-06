@@ -5,7 +5,7 @@
         "number": "450",
         "title": "Computer Architecture",
         "term": "Spring 2022",
-        "instructorid": 2,
+        "instructorId": 2,
         "liststudent": [
             7,
             8,
@@ -23,7 +23,7 @@
         "number": "101",
         "title": "Intro to Computer Science",
         "term": "Spring 2022",
-        "instructorid": 3,
+        "instructorId": 3,
         "liststudent": [
             7,
             8,

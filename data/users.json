@@ -3,77 +3,77 @@
         "userId": 1,
         "name": "John Doe 1",
         "email": "johndoe1@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "admin"
     },
     {
         "userId": 2,
         "name": "John Doe 2",
         "email": "johndoe2@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "instructor"
     },
     {
         "userId": 3,
         "name": "John Doe 3",
         "email": "johndoe3@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "instructor"
     },
     {
         "userId": 4,
         "name": "John Doe 4",
         "email": "johndoe4@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "instructor"
     },
     {
         "userId": 5,
         "name": "John Doe 5",
         "email": "johndoe5@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "instructor"
     },
     {
         "userId": 6,
         "name": "John Doe 6",
         "email": "johndoe6@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "instructor"
     },
     {
         "userId": 7,
         "name": "John Doe 7",
         "email": "johndoe7@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "student"
     },
     {
         "userId": 8,
         "name": "John Doe 8",
         "email": "johndoe8@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "student"
     },
     {
         "userId": 9,
         "name": "John Doe 9",
         "email": "johndoe9@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "student"
     },
     {
         "userId": 10,
         "name": "John Doe 10",
         "email": "johndoe10@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "student"
     },
     {
         "userId": 11,
         "name": "John Doe 11",
         "email": "johndoe11@oregonstate.edu",
-        "password": "hunter2",
+        "password": "$2a$08$Y00/JO/uN9n0dHKuudRX2eKksWMIHXDLzHWKuz/K67alAYsZRRike",
         "role": "student"
     }
 ]
