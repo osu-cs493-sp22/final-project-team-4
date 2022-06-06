@@ -69,7 +69,7 @@ exports.isStudentAndAssignmentInCourse = async function isStudentAndAssignmentIn
   }).toArray()
   // console.log("==course", course[0])
 
-  if(course[0].liststudent.includes(parseInt(studentId)) && course[0].listassignments.includes(parseInt(assignmentId))){
+  if(course && course[0].liststudent.includes(parseInt(studentId)) && course[0].listassignments.includes(parseInt(assignmentId))){
     return true
   }
   else{
