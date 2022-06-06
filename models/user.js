@@ -76,7 +76,7 @@ exports.getUserById = async function getUserById(userid){
     }
 }
 
-exports.getUserByEmail = async function(userEmail){
+exports.getUserByEmail = async function getUserByEmail(userEmail){
     const db = getDbReference()
     const collection = db.collection('users')
     const users = await collection.find({
@@ -85,7 +85,7 @@ exports.getUserByEmail = async function(userEmail){
     return users[0]
 }
 
-exports.bulkInsertNewUsers = async function(users) {
+exports.bulkInsertNewUsers = async function bulkInsertNewUsers(users) {
     const db = getDbReference()
     const collection = db.collection('users')
     const result = await collection.insertMany(users)
