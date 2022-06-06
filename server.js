@@ -104,8 +104,9 @@ connectToDb(function () {
   });
 });
 
-redisClient.connect().then(function () {
-  app.listen(port, () => {
-    console.log("== server is running on port:", port);
-  });
-});
+// TODO: FIXME:
+// redisClient.connect().then(function () {
+//   app.listen(port, () => {
+//     console.log("== server is running on port:", port);
+//   });
+// });
