@@ -1,0 +1,24 @@
+create api
+docker build -t final_team_4_api .
+
+create network
+docker network create --driver bridge team4-net
+
+
+create mongo db - server
+docker run -d --name mongo-server --network team4-net -p "27017:27017" -e "MONGO_ROOT_USERNAME=root" -e "MONGO_ROOT_PASSWORD=team4" mongo:latest
+
+(docker run -d --name mongo-server --network mongo-net -p "27017:27017" -e "MONGO_INITDB_ROOT_USERNAME=root" -e "MONGO_INITDB_ROOT_PASSWORD=team4" mongo:latest)
+
+run mongo shell
+docker run --rm -it --network mongo-net mongo:latest mongo --host mongo-server --username root --password team4 --authenticationDatabase admin
+
+
+
+
+# for courses only to add the data in courses.json to mongodb 
+npm run initdb
+=======
+redis
+docker run -d --name redis-server -p 6379:6379 redis:latest
+
