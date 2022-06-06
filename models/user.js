@@ -4,13 +4,22 @@ const { getDbReference } = require('../lib/mongo')
 const { extractValidFields } = require('../lib/validation')
 
 const UserSchema = {
-    userId: {required: true},
+    userId: { required: true },
     name: { required: true },
     email: { required: true, unique: true },
     password: { required: true },
     role: { required: true, default: "student" }, //can be 'admin', 'instructor', or 'student'
 }
 exports.UserSchema = UserSchema
+
+//get list of students
+exports.getUserList = async function getUserList(){
+    const db = getDbReference()
+    const collection = db.collection('users')
+    
+    const list = await collection.find({}).toArray()
+    return list
+}
 
 //add new user
 exports.insertNewUser = async function insertNewUser(user){
