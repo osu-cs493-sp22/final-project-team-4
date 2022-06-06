@@ -8,8 +8,7 @@ const secret = "SuperSecret"
 
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewUser, UserSchema, getUserById, getUserByEmail } = require('../models/user')
-const { ObjectId } = require('mongodb')
+const { insertNewUser, UserSchema, getUserById, getUserByEmail, getUserList } = require('../models/user')
 
 
 //only admin can create 'admin' or 'instructor'
@@ -17,7 +16,7 @@ const { ObjectId } = require('mongodb')
 //400 if req.body not present or didnt contain valid user object
 //403 if request not made by authenticated user
 router.post('/', async (req, res, next) => {
-    if (validateAgainstSchema(req.body, UserSchema)) {
+    if (req.body.name && req.body.email && req.body.password && req.body.role) {
         if (req.body.role == 'admin' || req.body.role == 'instructor') { //make sure admin is logged in to add admin or instructor
             let loggedInUser = 0
             let errorStatus = 0
@@ -43,8 +42,19 @@ router.post('/', async (req, res, next) => {
                     req.body.password = await bcrypt.hash(req.body.password, 8)
                     console.log("== Hashed, salted password:", req.body.password)
 
-                    const user = await insertNewUser(req.body)
-                    res.status(201).send({ id: req.body.userId })
+                    const userList = await getUserList()
+                    // console.log("==userList", userList)
+                    // console.log("==userList.length", userList.length)
+                    const body = {
+                        "userId": (userList.length + 1),
+                        "name": req.body.name,
+                        "email": req.body.email,
+                        "password": req.body.password,
+                        "role": req.body.role
+                    }
+
+                    const user = await insertNewUser(body)
+                    res.status(201).send({ id: (userList.length + 1) })
                 }
             } else {
                 res.status(403).send({ err: "request not made by authenticated user" })
@@ -55,8 +65,19 @@ router.post('/', async (req, res, next) => {
             req.body.password = await bcrypt.hash(req.body.password, 8)
             console.log("== Hashed, salted password:", req.body.password)
 
-            const user = await insertNewUser(req.body)
-            res.status(201).send({ id: req.body.userId })
+            const userList = await getUserList()
+            // console.log("==userList", userList)
+            // console.log("==userList.length", userList.length)
+            const body = {
+                "userId": (userList.length + 1),
+                "name": req.body.name,
+                "email": req.body.email,
+                "password": req.body.password,
+                "role": req.body.role
+            }
+
+            const user = await insertNewUser(body)
+            res.status(201).send({ id: (userList.length + 1) })
         }
     } else {
         res.status(400).send({ err: "body is not a valid user object" })
