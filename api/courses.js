@@ -6,7 +6,7 @@ const { getDbReference } = require('../lib/mongo')
 const { parse } = require('json2csv');
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById, getStudentRoster } = require('../models/course');
+const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById, updateCourseById, getStudentRoster } = require('../models/course')
 const { requireAuthentication } = require('../lib/auth');
 const { isUserInstructorOfCourse } = require('../models/submission');
 
@@ -167,6 +167,9 @@ router.delete('/:courseid', async (req, res, next) => {
 })
 
 
+//
+// GET /courses/{courseid}/roster - Fetch a CSV file containing list of the students enrolled in the Course.
+//
 router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
     const courseId = parseInt(req.params.courseid)
     if(isUserInstructorOfCourse(req.user, courseId)){
