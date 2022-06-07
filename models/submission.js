@@ -12,12 +12,12 @@ const submissionSchema = {
   file: { required: true },
 };
 
-exports.getSubmissionsPage = async function getSubmissionsPage(page, studentId) {
+exports.getSubmissionsPage = async function getSubmissionsPage(page, assignmentId) {
   const db = getDbReference()
   const collection = db.collection("submissions.files")
   const count = await collection.countDocuments()
   console.log("==count", count)
-  console.log("==studentId", studentId)
+  console.log("==assignmentId", assignmentId)
   /*
    * Compute last page number and make sure page is within allowed bounds.
    * Compute offset into collection.
@@ -29,7 +29,7 @@ exports.getSubmissionsPage = async function getSubmissionsPage(page, studentId) 
   const offset = (page - 1) * pageSize
 
   const results = await collection.find({
-    "metadata.studentId": parseInt(studentId)
+    "metadata.assignmentId": parseInt(assignmentId)
   })
     .sort({ _id: 1 })
     .skip(offset)
@@ -42,6 +42,47 @@ exports.getSubmissionsPage = async function getSubmissionsPage(page, studentId) 
     totalPages: lastPage,
     pageSize: pageSize,
     count: count
+  }
+}
+
+exports.isUserInstructorOfAssignment = async function isUserInstructorOfAssignment(instructorId, assignmentId){
+  const db = getDbReference();
+  const collection = db.collection("courses");
+  
+  const course = await collection.find({ instructorId: instructorId }).toArray()
+
+  if(course[0]){
+    console.log(course[0].listassignments)
+    if(course[0].listassignments.includes(assignmentId)){
+      return true
+    }
+    else{
+      return false
+    }
+  }else{
+    return false
+  }
+}
+
+exports.isStudentInAssignment = async function isStudentInAssignment(userId, assignmentId){
+  const db = getDbReference();
+  const courseCollection = db.collection("courses");
+  const assignmentCollection = db.collection("assignments");
+
+  const assignment = await assignmentCollection.find({ assignmentId: assignmentId }).toArray()
+  if(assignment[0]){
+    const course = await courseCollection.find({ courseId: assignment[0].courseId }).toArray()
+    if(course[0]){
+      if (course[0].liststudent.includes(userId)){
+        return true
+      }else{
+        return false
+      }
+    }else{
+      return false
+    }
+  }else{
+    return false
   }
 }
 
@@ -90,13 +131,9 @@ exports.getPhotoInfoById = async function getPhotoInfoById(id) {
   const db = getDbReference();
   const bucket = new GridFSBucket(db, { bucketName: 'submissions' })
 
-  if (!ObjectId.isValid(id)) {
-    return null;
-  } else {
-    const results = await bucket.find({ _id: new ObjectId(id) })
-      .toArray();
-    return results[0];
-  }
+  const results = await bucket.find({ "metadata.file": id })
+    .toArray();
+  return results[0];
 };
 
 exports.isUserInstructorOfCourse = async function(instructorId, courseId){

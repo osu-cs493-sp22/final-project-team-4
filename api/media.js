@@ -8,7 +8,7 @@ router.get('/submissions/:filename', async function (req, res, next) {
     if(filenameId[1] !== 'jpg' && filenameId[1] !== 'jpeg' && filenameId[1] !== 'png'){
         next()
     }
-    const submission = await getPhotoInfoById(filenameId[0])
+    const submission = await getPhotoInfoById(req.params.filename)
     console.log("==submission:", submission)
     if(submission){
         console.log("==submission.file:", submission.filename)
