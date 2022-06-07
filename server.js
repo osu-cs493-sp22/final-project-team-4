@@ -23,11 +23,11 @@ const authUserRateLimitWindowMaxRequests = 30; //per user
 async function manageBucket(perBasis, maxRequest) {
    let tokenBucket;
     try {
-    tokenBucket = await redisClient.hGetAll(perBasis);
-  } catch (error) {
-    // next();
-    console.log("error")
-    return;
+      tokenBucket = await redisClient.hGetAll(perBasis);
+      console.log('==Tokenbucket', tokenBucket)
+  } catch (e) {
+    console.log("error in bucket")
+    return
   }
 
   tokenBucket = {
@@ -63,6 +63,7 @@ async function manageBucket(perBasis, maxRequest) {
 
 async function rateLimit(req, res, next) {
   const authHeader = req.get("authorization") || "";
+  console.log("==authHeader: ", authHeader )
   const authParts = authHeader.split(" ");
   const token = authParts[0] === "Bearer" ? authParts[1] : null;
   console.log("==token",token)
@@ -71,8 +72,10 @@ async function rateLimit(req, res, next) {
     const payload = jwt.verify(token, "SuperSecret");
     console.log("== payload:", payload);
     const userId = payload.sub;
+    console.log('==userid:', userId)
     if (userId) {
-      if(await manageBucket(userId, authUserRateLimitWindowMaxRequests) == 1){
+      console.log("here")
+      if(await manageBucket(`${userId}`, authUserRateLimitWindowMaxRequests) == 1){
         console.log("too many requests")
         res.status(429).send({
           err: "Too many requests per minute"
