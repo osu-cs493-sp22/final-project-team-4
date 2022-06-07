@@ -13,7 +13,7 @@ const assignmentSchema = {
 };
 exports.assignmentSchema = assignmentSchema;
 
-exports.bulkInsertNewAssignments = async function bulkInsertNewAssignments(assignments){
+exports.bulkInsertNewAssignments = async function bulkInsertNewAssignments(assignments) {
   const assignmentsToInsert = assignments.map(function (assignment) {
     return extractValidFields(assignment, assignmentSchema)
   })
@@ -23,7 +23,7 @@ exports.bulkInsertNewAssignments = async function bulkInsertNewAssignments(assig
   return result.insertedIds
 }
 
-exports.getNumberOfAssignments = async function getNumberOfAssignments(){
+exports.getNumberOfAssignments = async function getNumberOfAssignments() {
   const db = getDbReference();
   const collection = db.collection("assignments");
 
@@ -42,33 +42,34 @@ exports.insertNewAssignment = async function insertNewAssignment(assignment) {
 
 exports.getAssignmentById = async function getAssignmentById(id) {
   const db = getDbReference();
-    const collection = db.collection("assignments");
-    const assignment = await collection.find({ assignmentId: id }).toArray()
-    if (assignment[0]) {
-        return assignment[0]
-    } else {
-        return undefined
-    }
+  const collection = db.collection("assignments");
+  const assignment = await collection.find({ assignmentId: id }).toArray()
+  if (assignment[0]) {
+    return assignment[0]
+  } else {
+    return undefined
+  }
 };
 
-exports.patchAssignmentById = async function patchAssignmentById(courseId, body){
+exports.patchAssignmentById = async function patchAssignmentById(courseId, body) {
   const db = getDbReference()
   const collection = db.collection('assignments')
   const assignment = await collection.find({
-      courseId: courseId
+    courseId: courseId
   }).toArray()
-  if(assignment[0]){
-      const result = await collection.updateOne(
-          { courseId: courseId },
-          { $set: {
-              assignmentId: body.assignmentId,
-              description: body.description,
-              title: body.title,
-              points: body.points,
-              due: body.due
-          }}
-      )
-      return result.matchedCount > 0
+  if (assignment[0]) {
+    const result = await collection.updateOne(
+      { courseId: courseId },
+      {
+        $set: {
+          description: body.description,
+          title: body.title,
+          points: body.points,
+          due: body.due
+        }
+      }
+    )
+    return result.matchedCount > 0
   }
 }
 
@@ -76,38 +77,40 @@ exports.deleteAssignmentById = async function deleteAssignmentById(courseid) {
   const db = getDbReference()
   const collection = db.collection('assignments')
   const assignments = await collection.find({
-      courseId: courseid
+    courseId: courseid
   }).toArray()
-  if (assignments[0]) { 
-      const result = await collection.deleteOne(
-          { courseId: courseid },
-      );
-      if (result.deletedCount == 1) {
-          return true
-      } else {
-          return true
-      }
+  if (assignments[0]) {
+    const result = await collection.deleteOne(
+      { courseId: courseid },
+    );
+    if (result.deletedCount == 1) {
+      return true
+    } else {
+      return true
+    }
   } else {
-      return false
+    return false
   }
 }
 
 exports.getAssignmentAndSubmissionById = async function getAssignmentAndSubmissionById(id) {
-    const db = getDbReference();
-    const collection = db.collection("assignments");
-    const assignment = await collection.aggregate([
-        { $match: { _id: new ObjectId(id) } },
-        { $lookup: {
-            from: "submissions",
-            localField: "_id",
-            foreignField: "assignmentId",
-            as: "submissions"
-        }}
-    ]).toArray()
-    return assignment[0]
+  const db = getDbReference();
+  const collection = db.collection("assignments");
+  const assignment = await collection.aggregate([
+    { $match: { _id: new ObjectId(id) } },
+    {
+      $lookup: {
+        from: "submissions",
+        localField: "_id",
+        foreignField: "assignmentId",
+        as: "submissions"
+      }
+    }
+  ]).toArray()
+  return assignment[0]
 }
 
-exports.isStudentAndAssignmentInCourse = async function isStudentAndAssignmentInCourse(studentId, assignmentId, courseId){
+exports.isStudentAndAssignmentInCourse = async function isStudentAndAssignmentInCourse(studentId, assignmentId, courseId) {
   const db = getDbReference();
   const collection = db.collection("courses");
   // console.log(courseId)
@@ -118,10 +121,10 @@ exports.isStudentAndAssignmentInCourse = async function isStudentAndAssignmentIn
   }).toArray()
   // console.log("==course", course[0])
 
-  if(course && course[0].liststudent.includes(parseInt(studentId)) && course[0].listassignments.includes(parseInt(assignmentId))){
+  if (course && course[0].liststudent.includes(parseInt(studentId)) && course[0].listassignments.includes(parseInt(assignmentId))) {
     return true
   }
-  else{
+  else {
     return false
   }
 }

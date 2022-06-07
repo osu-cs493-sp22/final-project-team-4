@@ -25,7 +25,7 @@ const upload = multer({
 const { validateAgainstSchema } = require('../lib/validation')
 const { insertNewAssignment, getAssignmentById, assignmentSchema,patchAssignmentById,deleteAssignmentById, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse, getNumberOfAssignments } = require('../models/assignment')
 const { submissionSchema, insertNewSubmission, savePhotoFile, getSubmissionsPage, isUserInstructorOfCourse } = require('../models/submission')
-const { requireAuthentication, isUserStudent, isUserInstructor } = require('../lib/auth')
+const { requireAuthentication, isUserStudent, isUserInstructor, isUserAdmin } = require('../lib/auth')
 
 
 const router = Router()
@@ -65,7 +65,7 @@ router.get('/:courseid', async function (req, res, next) {
         })
     }
 })
-router.patch('/:courseid', async function (req, res, next) {
+router.patch('/:courseid', requireAuthentication, async function (req, res, next) {
     const courseid = parseInt(req.params.courseid);
     if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)) {
         try {
