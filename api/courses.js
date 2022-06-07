@@ -187,6 +187,7 @@ router.get('/:courseid/roster', requireAuthentication, async (req, res, next) =>
     }else{
         res.status(403).send({ err: "request not made by authenticated user" })
     }
+})
 //
 // GET /courses/{courseid}/students - Fetch a list of the students enrolled in the Course
 //
