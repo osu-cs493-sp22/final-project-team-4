@@ -23,6 +23,14 @@ exports.bulkInsertNewAssignments = async function bulkInsertNewAssignments(assig
   return result.insertedIds
 }
 
+exports.getNumberOfAssignments = async function getNumberOfAssignments(){
+  const db = getDbReference();
+  const collection = db.collection("assignments");
+
+  const assignments = await collection.find({}).toArray()
+  return assignments.length
+}
+
 exports.insertNewAssignment = async function insertNewAssignment(assignment) {
   const db = getDbReference();
   const collection = db.collection("assignments");
@@ -34,13 +42,13 @@ exports.insertNewAssignment = async function insertNewAssignment(assignment) {
 
 exports.getAssignmentById = async function getAssignmentById(id) {
   const db = getDbReference();
-  const collection = db.collection("assignments");
-  const assignment = await collection.find({ assignmentId: id }).toArray()
-  if (assignment[0]) {
-      return assignment
-  } else {
-      return undefined
-  }
+    const collection = db.collection("assignments");
+    const assignment = await collection.find({ assignmentId: id }).toArray()
+    if (assignment[0]) {
+        return assignment[0]
+    } else {
+        return undefined
+    }
 };
 
 exports.patchAssignmentById = async function patchAssignmentById(courseId, body){
