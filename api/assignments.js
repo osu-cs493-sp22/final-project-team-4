@@ -23,19 +23,28 @@ const upload = multer({
 })
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewAssignment, getAssignmentById, assignmentSchema, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse } = require('../models/assignment')
+const { insertNewAssignment, getAssignmentById, assignmentSchema, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse, getNumberOfAssignments } = require('../models/assignment')
 const { submissionSchema, insertNewSubmission, savePhotoFile, getSubmissionsPage, isUserInstructorOfCourse } = require('../models/submission')
-const { requireAuthentication, isUserStudent, isUserInstructor } = require('../lib/auth')
+const { requireAuthentication, isUserStudent, isUserInstructor, isUserAdmin } = require('../lib/auth')
 const router = Router()
 
-router.post('/', async function (req, res, next) {
-    if (validateAgainstSchema(req.body, assignmentSchema)) {
-        const id = await insertNewAssignment(req.body)
-        res.status(201).send({ id: id })
+router.post('/', requireAuthentication, async function (req, res, next) {
+    if(await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, req.body.courseId)){
+        const number = await getNumberOfAssignments()
+        req.body.assignmentId = parseInt(number)
+        if (validateAgainstSchema(req.body, assignmentSchema)) {
+            const id = await insertNewAssignment(req.body)
+            res.status(201).send({ 
+                id: id, 
+                assignmentId: number
+            })
+        } else {
+            res.status(400).send({
+                err: "The request body was either not present or did not contain a valid Assignment object."
+            })
+        }
     } else {
-        res.status(400).send({
-            err: "The request body was either not present or did not contain a valid Assignment object."
-        })
+        res.status(403).send({ err: "request not made by authenticated user" })
     }
 })
 router.get('/:courseid', async function (req, res, next) {
@@ -66,8 +75,6 @@ router.delete('/:courseid', async function (req, res, next) {
 
 router.get('/:courseid/submissions', requireAuthentication, async function (req, res, next) {
     const courseId = parseInt(req.params.courseid)
-    console.log(await isUserInstructor(req.user))
-    console.log(await isUserInstructorOfCourse(req.user, courseId))
     if(await isUserInstructor(req.user) && await isUserInstructorOfCourse(req.user, courseId)){
         try {
             /*
