@@ -124,8 +124,8 @@ router.post('/login', async (req, res, next) => {
 router.get('/:id', requireAuthentication, async (req, res, next) => {
     const id = parseInt(req.params.id)
     const adminCheck = await isUserAdmin(req.user)
-    console.log(req.user == id)
-    console.log(adminCheck)
+    // console.log(req.user == id)
+    // console.log(adminCheck)
     if (req.user == id || adminCheck) {
         const user = await getUserById(id)
         if (user) {
