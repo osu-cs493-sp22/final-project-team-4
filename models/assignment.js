@@ -34,14 +34,55 @@ exports.insertNewAssignment = async function insertNewAssignment(assignment) {
 
 exports.getAssignmentById = async function getAssignmentById(id) {
   const db = getDbReference();
-    const collection = db.collection("assignments");
-    const assignment = await collection.find({ assignmentId: id }).toArray()
-    if (assignment[0]) {
-        return assignment
-    } else {
-        return undefined
-    }
+  const collection = db.collection("assignments");
+  const assignment = await collection.find({ assignmentId: id }).toArray()
+  if (assignment[0]) {
+      return assignment
+  } else {
+      return undefined
+  }
 };
+
+exports.patchAssignmentById = async function patchAssignmentById(courseId, body){
+  const db = getDbReference()
+  const collection = db.collection('assignments')
+  const assignment = await collection.find({
+      courseId: courseId
+  }).toArray()
+  if(assignment[0]){
+      const result = await collection.updateOne(
+          { courseId: courseId },
+          { $set: {
+              assignmentId: body.assignmentId,
+              description: body.description,
+              title: body.title,
+              points: body.points,
+              due: body.due
+          }}
+      )
+      return result.matchedCount > 0
+  }
+}
+
+exports.deleteAssignmentById = async function deleteAssignmentById(courseid) {
+  const db = getDbReference()
+  const collection = db.collection('assignments')
+  const assignments = await collection.find({
+      courseId: courseid
+  }).toArray()
+  if (assignments[0]) { 
+      const result = await collection.deleteOne(
+          { courseId: courseid },
+      );
+      if (result.deletedCount == 1) {
+          return true
+      } else {
+          return true
+      }
+  } else {
+      return false
+  }
+}
 
 exports.getAssignmentAndSubmissionById = async function getAssignmentAndSubmissionById(id) {
     const db = getDbReference();
