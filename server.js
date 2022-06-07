@@ -102,7 +102,7 @@ async function rateLimit(req, res, next) {
   }
 }
 
-app.use(rateLimit);
+//app.use(rateLimit);
 /*
  * Morgan is a popular logger.
  */
@@ -124,15 +124,15 @@ app.use("*", function (req, res, next) {
   });
 });
 
-// connectToDb(function () {
-//   app.listen(port, function () {
-//     console.log("== Server is running on port", port);
-//   });
-// });
-
-// TODO: FIXME:
-redisClient.connect().then(connectToDb(function () {
-  app.listen(port, () => {
-    console.log("== server is running on port:", port);
+connectToDb(function () {
+  app.listen(port, function () {
+    console.log("== Server is running on port", port);
   });
-}));
+});
+
+// // TODO: FIXME:
+// redisClient.connect().then(connectToDb(function () {
+//   app.listen(port, () => {
+//     console.log("== server is running on port:", port);
+//   });
+// }));

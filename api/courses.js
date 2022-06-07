@@ -5,7 +5,7 @@ const { Router } = require('express')
 const { getDbReference } = require('../lib/mongo')
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById } = require('../models/course')
+const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById, updateCourseById } = require('../models/course')
 
 
 const router = Router()
@@ -60,10 +60,10 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     if (validateAgainstSchema(req.body, CourseSchema)) {
-        const courseid = parseInt(req.body.courseid);
+        const courseid = parseInt(req.body.courseId);
         if (await checkIfCourseExistById(courseid)) {
             res.status(200).send({
-                error: "id: " + req.body.courseid + " already exist. Will not create new one."
+                error: "id: " + req.body.courseId + " already exist. Will not create new one."
             })
             return;
         }
@@ -118,7 +118,7 @@ router.put('/:courseid', async (req, res, next) => {
                 // now add new one
                 const id = await insertNewCourse(req.body)
                 res.status(200).send({
-                    "courseid": courseid,
+                    "courseId": courseid,
                     id: id
                 });
             } else {
@@ -146,7 +146,7 @@ router.delete('/:courseid', async (req, res, next) => {
         const course = await getCourseById(courseid)
         if (course) {
             if (await deleteCourseById(courseid)) {
-                res.status(200).send({ "courseid": courseid });
+                res.status(200).send({ "courseId": courseid });
             } else {
                 res.status(500).send({
                     error: "Unable to delete courses."
@@ -159,6 +159,93 @@ router.delete('/:courseid', async (req, res, next) => {
         console.error(err)
         res.status(500).send({
             error: "Unable to fetch courses.  Please try again later."
+        })
+    }
+})
+
+//
+// GET /courses/{courseid}/students - Fetch a list of the students enrolled in the Course
+//
+router.get('/:courseid/students', async (req, res, next) => {
+    const courseid = parseInt(req.params.courseid);
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            res.status(200).send({
+                "students": course.liststudent
+            })
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch a list of the students.  Please try again later."
+        })
+    }
+})
+
+//
+// POST /coursess/{courseid}/students - Update enrollment for a Course
+//
+router.post('/:courseid/students', async (req, res, next) => {
+    const courseid = parseInt(req.params.courseid);
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            course.liststudent = req.body.liststudent;
+            updateCourseById(courseid, course)
+            res.status(200).send(course)
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch courses.  Please try again later."
+        })
+    }
+})
+
+//
+// GET /courses/{courseid}/roster - Fetch a CSV file containing list of the students enrolled in the Course.
+//
+router.get('/:courseid/roster', async (req, res, next) => {
+    // TODO:
+    const courseid = parseInt(req.params.courseid);
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            res.status(200).send(course)
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch courses.  Please try again later."
+        })
+    }
+})
+
+//
+// GET /courses/{courseid}/assignments - Fetch a list of the Assignments for the Course
+//
+router.get('/:courseid/assignments', async (req, res, next) => {
+    const courseid = parseInt(req.params.courseid);
+    try {
+        const course = await getCourseById(courseid)
+        if (course) {
+            res.status(200).send({
+                "assignments": course.listassignments
+            })
+        } else {
+            next()
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({
+            error: "Unable to fetch a list of the students.  Please try again later."
         })
     }
 })
