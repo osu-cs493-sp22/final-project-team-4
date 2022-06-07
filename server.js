@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+
 const redis = require("redis");
 const jwt = require("jsonwebtoken");
 
@@ -61,6 +62,7 @@ async function manageBucket(perBasis, maxRequest) {
 
 async function rateLimit(req, res, next) {
   const authHeader = req.get("authorization") || "";
+  console.log("==authHeader: ", authHeader )
   const authParts = authHeader.split(" ");
   const token = authParts[0] === "Bearer" ? authParts[1] : null;
   console.log("==token",token)
@@ -69,8 +71,10 @@ async function rateLimit(req, res, next) {
     const payload = jwt.verify(token, "SuperSecret");
     console.log("== payload:", payload);
     const userId = payload.sub;
+    console.log('==userid:', userId)
     if (userId) {
-      if(await manageBucket(userId, authUserRateLimitWindowMaxRequests) == 1){
+      console.log("here")
+      if(await manageBucket(`${userId}`, authUserRateLimitWindowMaxRequests) == 1){
         console.log("too many requests")
         res.status(429).send({
           err: "Too many requests per minute"
