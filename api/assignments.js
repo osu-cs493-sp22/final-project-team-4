@@ -2,14 +2,11 @@ const { Router } = require('express')
 const { getDbReference } = require('../lib/mongo')
 
 const { validateAgainstSchema } = require('../lib/validation')
-<<<<<<< Updated upstream
-const { insertNewAssignment, getAssignmentById, assignmentSchema, getAssignmentAndSubmissionById } = require('../models/assignment')
-const{submissionSchema,insertNewSubmission} = require('../models/submission')
-=======
+
 const { insertNewAssignment, getAssignmentById, assignmentSchema,patchAssignmentById,deleteAssignmentById, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse } = require('../models/assignment')
 const { submissionSchema, insertNewSubmission, savePhotoFile, getSubmissionsPage, isUserInstructorOfCourse } = require('../models/submission')
 const { requireAuthentication, isUserStudent, isUserInstructor } = require('../lib/auth')
->>>>>>> Stashed changes
+
 const router = Router()
 
 router.post('/', async function (req, res, next) {
