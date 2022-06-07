@@ -166,10 +166,11 @@ router.delete('/:courseid', async (req, res, next) => {
     }
 })
 
+
 //
 // GET /courses/{courseid}/roster - Fetch a CSV file containing list of the students enrolled in the Course.
 //
-router.get('/:courseid/roster', /*requireAuthentication,*/ async (req, res, next) => {
+router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
     const courseId = parseInt(req.params.courseid)
     if(isUserInstructorOfCourse(req.user, courseId)){
         const studentList = await getStudentRoster(parseInt(req.params.courseid))
