@@ -62,7 +62,7 @@ exports.getCourseById = async function getCourseById(courseid) {
     const collection = db.collection('courses')
     const courses = await collection.find({
         // _id: new ObjectId(courseid)
-        courseid: courseid
+        courseId: courseid
     }).toArray()
     if (courses[0]) { //if a course exists
         return courses[0]
@@ -77,13 +77,37 @@ exports.deleteCourseById = async function deleteCourseById(courseid) {
     const collection = db.collection('courses')
     const courses = await collection.find({
         // _id: new ObjectId(courseid)
-        courseid: courseid
+        courseId: courseid
     }).toArray()
     if (courses[0]) { //if a course exists
         const result = await collection.deleteOne(
-            { courseid: courseid },
+            { courseId: courseid },
         );
         if (result.deletedCount == 1) {
+            return true
+        } else {
+            return true
+        }
+    } else {
+        return false
+    }
+}
+
+// update course by id
+exports.updateCourseById = async function updateCourseById(courseid, course) {
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    const courses = await collection.find({
+        // _id: new ObjectId(courseid)
+        courseId: courseid
+    }).toArray()
+    if (courses[0]) { //if a course exists
+        const result = await collection.deleteOne(
+            { courseId: courseid },
+        );
+        if (result.deletedCount == 1) {
+            // add new course
+            const result = await collection.insertOne(course)
             return true
         } else {
             return true
@@ -99,7 +123,7 @@ exports.checkIfCourseExistById = async function checkIfCourseExistById(courseid)
     const collection = db.collection('courses')
     const courses = await collection.find({
         // _id: new ObjectId(courseid)
-        "courseid": courseid
+        "courseId": courseid
     }).toArray()
     if (courses[0]) { //if a course exists
         return true
@@ -168,36 +192,4 @@ async function bulkInsertNewCourses(courses) {
     return result.insertedIds
 }
 exports.bulkInsertNewCourses = bulkInsertNewCourses
-
-
-// TODO: FIXME:
-// possibly required functions
-
-// get course subject from given course in the database
-// add course subject
-// remove course subject
-
-// get course number from given course in the database
-// add course number
-// remove course number
-
-// get course title from given course in the database
-// add course title
-// remove course title
-
-// get term id from given course in the database
-// add term id
-// remove term id
-
-// get Instructor id from given course in the database
-// add instructor id
-// remove instructor id
-
-// get List of Students taking the course
-// Add to the list of students (check for usertype)
-// remove student from usersList (check for usertype)
-
-// get list of assignments from the course
-// add assignment to course database
-// remove assignment from course in the database
 
