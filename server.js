@@ -23,11 +23,10 @@ const authUserRateLimitWindowMaxRequests = 30; //per user
 async function manageBucket(perBasis, maxRequest) {
    let tokenBucket;
     try {
-      tokenBucket = await redisClient.hGetAll(perBasis);
-      console.log('==Tokenbucket', tokenBucket)
-  } catch (e) {
-    console.log("error in bucket")
-    return
+    tokenBucket = await redisClient.hGetAll(perBasis);
+  } catch (error) {
+    console.log("error")
+    return;
   }
 
   tokenBucket = {
@@ -106,7 +105,7 @@ async function rateLimit(req, res, next) {
   }
 }
 
-app.use(rateLimit);
+//app.use(rateLimit);
 /*
  * Morgan is a popular logger.
  */
@@ -140,3 +139,10 @@ redisClient.connect().then(connectToDb(function () {
     console.log("== server is running on port:", port);
   });
 }));
+
+// // // TODO: FIXME:
+// redisClient.connect().then(connectToDb(function () {
+//   app.listen(port, () => {
+//     console.log("== server is running on port:", port);
+//   });
+// }));

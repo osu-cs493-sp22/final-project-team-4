@@ -12,6 +12,39 @@ const submissionSchema = {
   file: { required: true },
 };
 
+exports.getSubmissionsPage = async function getSubmissionsPage(page, studentId) {
+  const db = getDbReference()
+  const collection = db.collection("submissions.files")
+  const count = await collection.countDocuments()
+  console.log("==count", count)
+  console.log("==studentId", studentId)
+  /*
+   * Compute last page number and make sure page is within allowed bounds.
+   * Compute offset into collection.
+   */
+  const pageSize = 10
+  const lastPage = Math.ceil(count / pageSize)
+  page = page > lastPage ? lastPage : page
+  page = page < 1 ? 1 : page
+  const offset = (page - 1) * pageSize
+
+  const results = await collection.find({
+    "metadata.studentId": parseInt(studentId)
+  })
+    .sort({ _id: 1 })
+    .skip(offset)
+    .limit(pageSize)
+    .toArray()
+
+  return {
+    submissions: results,
+    page: page,
+    totalPages: lastPage,
+    pageSize: pageSize,
+    count: count
+  }
+}
+
 exports.insertNewSubmission = async function insertNewSubmission(submission) {
   const db = getDbReference();
   const collection = db.collection("submissions");
@@ -21,13 +54,13 @@ exports.insertNewSubmission = async function insertNewSubmission(submission) {
   return result.insertedId;
 };
 
-exports.savePhotoFile = function (photo) {
+exports.savePhotoFile = function savePhotoFile(photo) {
   return new Promise(function (resolve, reject) {
     const db = getDbReference()
     const bucket = new GridFSBucket(db, { bucketName: 'submissions' })
     const metadata = {
-      assignmentId: photo.assignmentId,
-      studentId: photo.studentId,
+      assignmentId: parseInt(photo.assignmentId),
+      studentId: parseInt(photo.studentId),
       timestamp: photo.timestamp,
       grade: null,
       file: photo.file,
@@ -47,13 +80,13 @@ exports.savePhotoFile = function (photo) {
   })
 }
 
-exports.getPhotoDownloadStream = function(filename) {
+exports.getPhotoDownloadStream = function getPhotoDownloadStream(filename) {
   const db = getDbReference()
   const bucket = new GridFSBucket(db, { bucketName: 'submissions' })
   return bucket.openDownloadStreamByName(filename)
 }
 
-exports.getPhotoInfoById = async function (id) {
+exports.getPhotoInfoById = async function getPhotoInfoById(id) {
   const db = getDbReference();
   const bucket = new GridFSBucket(db, { bucketName: 'submissions' })
 
@@ -65,3 +98,19 @@ exports.getPhotoInfoById = async function (id) {
     return results[0];
   }
 };
+
+exports.isUserInstructorOfCourse = async function(instructorId, courseId){
+  const db = getDbReference();
+  const collection = db.collection('courses')
+
+  const course = await collection.find({
+    courseId: parseInt(courseId)
+  }).toArray()
+  
+  if(course[0] && course[0].instructorId == parseInt(instructorId)){
+    return true
+  }
+  else{
+    return false
+  }
+}
