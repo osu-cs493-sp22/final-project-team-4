@@ -108,16 +108,66 @@ exports.checkIfCourseExistById = async function checkIfCourseExistById(courseid)
     }
 }
 
+async function getAllStudents(IDList, courseId){
+    const db = getDbReference()
+    const collection = db.collection('users')
+    const studentList = []
+    console.log("==IDList", IDList)
+
+    if(IDList.length == 0){
+        return []
+    }
+    else{
+        for(i = 0; i < IDList.length; i++){
+            const student = await collection.find({
+                userId: parseInt(IDList[i])
+            }).toArray()
+
+            if(student[0]){
+                console.log("pushed: ", student[0])
+                studentList.push(student[0])
+            }
+        }
+    }
+    return studentList
+}
+
+exports.getStudentRoster = async function getStudentRoster(courseId){
+    const db = getDbReference()
+    const collection = db.collection('courses')
+    // const studentList = []
+    const courses = await collection.find({
+        courseId: parseInt(courseId)
+    }).toArray()
+    console.log("==courses", courses[0])
+    if(courses[0]){
+        const studentList = await getAllStudents(courses[0].liststudent, courseId)
+        return studentList
+        // await courses[0].liststudent.forEach(async eachStudent => {
+        //     // console.log("inside forEach")
+        //     const student = await studentColleciton.find({
+        //         userId: eachStudent
+        //     }).toArray()
+        //     if(student[0]){
+        //         console.log("==student[0]", student[0])
+        //         // console.log("pushed")
+        //         studentList.push(student[0])
+        //     }
+        // });
+    }
+    return []
+}
+
 async function bulkInsertNewCourses(courses) {
     const coursesToInsert = courses.map(function (course) {
-      return extractValidFields(course, CourseSchema)
+        return extractValidFields(course, CourseSchema)
     })
     const db = getDbReference()
     const collection = db.collection('courses')
     const result = await collection.insertMany(coursesToInsert)
     return result.insertedIds
-  }
-  exports.bulkInsertNewCourses = bulkInsertNewCourses
+}
+exports.bulkInsertNewCourses = bulkInsertNewCourses
 
 
 // TODO: FIXME:

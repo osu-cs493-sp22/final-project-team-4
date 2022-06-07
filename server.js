@@ -24,7 +24,6 @@ async function manageBucket(perBasis, maxRequest) {
     try {
     tokenBucket = await redisClient.hGetAll(perBasis);
   } catch (error) {
-    // next();
     console.log("error")
     return;
   }
@@ -124,11 +123,6 @@ app.use("*", function (req, res, next) {
   });
 });
 
-// connectToDb(function () {
-//   app.listen(port, function () {
-//     console.log("== Server is running on port", port);
-//   });
-// });
 
 // TODO: FIXME:
 redisClient.connect().then(connectToDb(function () {

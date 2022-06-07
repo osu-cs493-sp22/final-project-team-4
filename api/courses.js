@@ -3,9 +3,12 @@
 //
 const { Router } = require('express')
 const { getDbReference } = require('../lib/mongo')
+const { parse } = require('json2csv');
 
 const { validateAgainstSchema } = require('../lib/validation')
-const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById } = require('../models/course')
+const { insertNewCourse, getCourseById, CourseSchema, getCoursesPage, deleteCourseById, checkIfCourseExistById, getStudentRoster } = require('../models/course');
+const { requireAuthentication } = require('../lib/auth');
+const { isUserInstructorOfCourse } = require('../models/submission');
 
 
 const router = Router()
@@ -161,6 +164,29 @@ router.delete('/:courseid', async (req, res, next) => {
             error: "Unable to fetch courses.  Please try again later."
         })
     }
+})
+
+router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
+    const courseId = parseInt(req.params.courseid)
+    if(isUserInstructorOfCourse(req.user, courseId)){
+        const studentList = await getStudentRoster(parseInt(req.params.courseid))
+        console.log("==studentList ", studentList)
+        
+    
+        const fields = ['userId', 'name', 'email'];
+        const opts = { fields };
+        try {
+            const csv = parse(studentList, opts);
+            console.log(csv);
+            res.status(200).send(csv)
+        } catch (err) {
+            console.error(err);
+            next()
+        }
+    }else{
+        res.status(403).send({ err: "request not made by authenticated user" })
+    }
+    
 })
 
 module.exports = router;
