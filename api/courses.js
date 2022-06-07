@@ -174,8 +174,8 @@ router.get('/:courseid/roster', /*requireAuthentication,*/ async (req, res, next
     if(isUserInstructorOfCourse(req.user, courseId)){
         const studentList = await getStudentRoster(parseInt(req.params.courseid))
         console.log("==studentList ", studentList)
-        
-    
+
+
         const fields = ['userId', 'name', 'email'];
         const opts = { fields };
         try {
