@@ -106,8 +106,8 @@ exports.isUserInstructorOfCourse = async function(instructorId, courseId){
   const course = await collection.find({
     courseId: parseInt(courseId)
   }).toArray()
-
-  if(course && course[0].instructorId == parseInt(instructorId)){
+  
+  if(course[0] && course[0].instructorId == parseInt(instructorId)){
     return true
   }
   else{

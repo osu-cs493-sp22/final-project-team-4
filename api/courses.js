@@ -62,7 +62,7 @@ router.get('/', async (req, res) => {
  * POST /courses - Route to create a new courses.
  */
 router.post('/', requireAuthentication, async (req, res, next) => {
-    if (isUserAdmin(req.user)) {
+    if (await isUserAdmin(req.user)) {
         if (req.body.subject && req.body.number && req.body.title && req.body.term && req.body.instructorId) {
             const courseid = parseInt(req.body.courseId);
             if (await checkIfCourseExistById(courseid)) {
@@ -126,7 +126,7 @@ router.get('/:courseid', async (req, res, next) => {
 //
 router.put('/:courseid', requireAuthentication, async (req, res, next) => {
     const courseid = parseInt(req.params.courseid);
-    if (isUserAdmin(req.user) || isUserInstructorOfCourse(req.user, courseid)) {
+    if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)) {
         try {
             const course = await getCourseById(courseid)
             if (course) {
@@ -157,61 +157,45 @@ router.put('/:courseid', requireAuthentication, async (req, res, next) => {
 // DEL /courses/{courseid} - Route to delete a specific course.
 //
 router.delete('/:courseid', requireAuthentication, async (req, res, next) => {
-    if(isUserAdmin(req.user)){
-        const courseid = parseInt(req.params.courseid);
-        try {
-            const course = await getCourseById(courseid)
-            if (course) {
-                if (await deleteCourseById(courseid)) {
-                    res.status(204).send();
+    const courseid = parseInt(req.params.courseid);
+    const course = await getCourseById(courseid)
+    if(course){
+        if(await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)){
+            try {
+                const course = await getCourseById(courseid)
+                if (course) {
+                    if (await deleteCourseById(courseid)) {
+                        res.status(204).send();
+                    } else {
+                        res.status(500).send({
+                            error: "Unable to delete course."
+                        })
+                    }
                 } else {
-                    res.status(500).send({
-                        error: "Unable to delete course."
-                    })
+                    next()
                 }
-            } else {
-                next()
-            }
-        } catch (err) {
-            console.error(err)
-            res.status(500).send({
-                error: "Unable to fetch courses.  Please try again later."
-            })
-        } 
-    } else {
-        res.status(403).send({ err: "request not made by authenticated user" })
-    }
-    
-})
-
-
-router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
-    const courseId = parseInt(req.params.courseid)
-    if(isUserInstructorOfCourse(req.user, courseId)){
-        const studentList = await getStudentRoster(parseInt(req.params.courseid))
-        console.log("==studentList ", studentList)
-        
-    
-        const fields = ['userId', 'name', 'email'];
-        const opts = { fields };
-        try {
-            const csv = parse(studentList, opts);
-            console.log(csv);
-            res.status(200).send(csv)
-        } catch (err) {
-            console.error(err);
-            next()
+            } catch (err) {
+                console.error(err)
+                res.status(500).send({
+                    error: "Unable to fetch courses.  Please try again later."
+                })
+            } 
+        } else {
+            res.status(403).send({ err: "request not made by authenticated user" })
         }
     }else{
-        res.status(403).send({ err: "request not made by authenticated user" })
+        next()
     }
+    
+    
 })
+
 //
 // GET /courses/{courseid}/students - Fetch a list of the students enrolled in the Course
 //
 router.get('/:courseid/students', requireAuthentication, async (req, res, next) => {
     const courseid = parseInt(req.params.courseid);
-    if (isUserAdmin(req.user) || isUserInstructorOfCourse(req.user, courseid)) {
+    if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)) {
         try {
             const studentList = await getStudentRoster(courseid)
             if (studentList) {
@@ -233,14 +217,14 @@ router.get('/:courseid/students', requireAuthentication, async (req, res, next) 
 })
 
 //
-// POST /coursess/{courseid}/students - Update enrollment for a Course
+// POST /courses/{courseid}/students - Update enrollment for a Course
 //
 router.post('/:courseid/students', requireAuthentication, async (req, res, next) => {
     const courseid = parseInt(req.params.courseid);
-    if (isUserAdmin(req.user) || isUserInstructorOfCourse(req.user, courseid)) {
+    if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)) {
         try {
             const newEnrollment = await updateCourseEnrollment(courseid, req.body.add, req.body.remove)
-            console.log("==newEnrollment", newEnrollment)
+            // console.log("==newEnrollment", newEnrollment)
             if (newEnrollment) {
                 res.status(200).send()
             } else {
@@ -257,30 +241,40 @@ router.post('/:courseid/students', requireAuthentication, async (req, res, next)
     }
 })
 
+//
+// GET /courses/{courseid}/roster - Get CSV file of roster
+//
 router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
     const courseId = parseInt(req.params.courseid)
-    if (isUserAdmin(req.user) || isUserInstructorOfCourse(req.user, courseId)) {
-        const studentList = await getStudentRoster(parseInt(req.params.courseid))
-        // console.log("==studentList ", studentList)
-
-        if(studentList){
-            const fields = ['userId', 'name', 'email'];
-            const opts = { fields };
-            try {
-                const csv = parse(studentList, opts);
-                console.log(csv);
-                res.status(200).send(csv)
-            } catch (err) {
-                console.error(err);
+    const course = await getCourseById(courseId)
+    // console.log("==course",course)
+    if(course){
+        if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseId)) {
+            const studentList = await getStudentRoster(parseInt(req.params.courseid))
+            // console.log("==studentList ", studentList)
+    
+            if(studentList){
+                const fields = ['userId', 'name', 'email'];
+                const opts = { fields };
+                try {
+                    const csv = parse(studentList, opts);
+                    // console.log(csv);
+                    res.status(200).send(csv)
+                } catch (err) {
+                    console.error(err);
+                    next()
+                }
+            }else{
                 next()
             }
-        }else{
-            next()
+            
+        } else {
+            res.status(403).send({ err: "request not made by authenticated user" })
         }
-        
-    } else {
-        res.status(403).send({ err: "request not made by authenticated user" })
+    }else{
+        next()
     }
+    
 })
 
 //

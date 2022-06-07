@@ -79,6 +79,7 @@ exports.getCourseById = async function getCourseById(courseid) {
         // _id: new ObjectId(courseid)
         courseId: courseid
     }).toArray()
+    console.log("==courses[0] in getCourseById", courses[0])
     if (courses[0]) { //if a course exists
         const strippedCourse = {
             subject: courses[0].subject,
@@ -89,7 +90,7 @@ exports.getCourseById = async function getCourseById(courseid) {
         }
         return strippedCourse
     } else {
-        return undefined
+        return null
     }
 }
 
