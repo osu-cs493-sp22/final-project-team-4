@@ -105,7 +105,7 @@ async function rateLimit(req, res, next) {
   }
 }
 
-//app.use(rateLimit);
+app.use(rateLimit);
 /*
  * Morgan is a popular logger.
  */

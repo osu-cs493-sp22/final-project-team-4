@@ -24,7 +24,7 @@ const upload = multer({
 
 const { validateAgainstSchema } = require('../lib/validation')
 const { insertNewAssignment, getAssignmentById, assignmentSchema,patchAssignmentById,deleteAssignmentById, getAssignmentAndSubmissionById, isStudentAndAssignmentInCourse, getNumberOfAssignments } = require('../models/assignment')
-const { submissionSchema, insertNewSubmission, savePhotoFile, getSubmissionsPage, isUserInstructorOfCourse } = require('../models/submission')
+const { submissionSchema, insertNewSubmission, savePhotoFile, getSubmissionsPage, isUserInstructorOfCourse, isUserInstructorOfAssignment, isStudentInAssignment } = require('../models/submission')
 const { requireAuthentication, isUserStudent, isUserInstructor, isUserAdmin } = require('../lib/auth')
 
 
@@ -32,7 +32,7 @@ const router = Router()
 
 router.post('/', requireAuthentication, async function (req, res, next) {
     if(await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, req.body.courseId)){
-        const number = await getNumberOfAssignments()
+        const number = await getNumberOfAssignments() + 1
         req.body.assignmentId = parseInt(number)
         if (validateAgainstSchema(req.body, assignmentSchema)) {
             const id = await insertNewAssignment(req.body)
@@ -49,12 +49,12 @@ router.post('/', requireAuthentication, async function (req, res, next) {
         res.status(403).send({ err: "request not made by authenticated user" })
     }
 })
-router.get('/:courseid', async function (req, res, next) {
-    const courseid = parseInt(req.params.courseid);
+router.get('/:assignmentId', async function (req, res, next) {
+    const assignmentId = parseInt(req.params.assignmentId);
     try {
-        const asssignment = await getAssignmentById(courseid)
-        if (asssignment) {
-            res.status(200).send(asssignment)
+        const assignment = await getAssignmentById(assignmentId)
+        if (assignment) {
+            res.status(200).send(assignment)
         } else {
             next()
         }
@@ -65,13 +65,13 @@ router.get('/:courseid', async function (req, res, next) {
         })
     }
 })
-router.patch('/:courseid', requireAuthentication, async function (req, res, next) {
-    const courseid = parseInt(req.params.courseid);
-    if (await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)) {
+router.patch('/:assignmentId', requireAuthentication, async function (req, res, next) {
+    const assignmentId = parseInt(req.params.assignmentId);
+    if (await isUserAdmin(req.user) || await isUserInstructorOfAssignment(req.user, assignmentId)) {
         try {
-            const asssignment = await getAssignmentById(courseid)
+            const asssignment = await getAssignmentById(assignmentId)
             if (asssignment) {
-                const result = patchAssignmentById(courseid, req.body)
+                const result = patchAssignmentById(assignmentId, req.body)
                 if (result) {
                     res.status(200).send();
                 } else {
@@ -93,15 +93,15 @@ router.patch('/:courseid', requireAuthentication, async function (req, res, next
     }
 })
 
-router.delete('/:courseid', requireAuthentication,async function (req, res, next) {
-    const courseid = parseInt(req.params.courseid);
-    const asssignment = await getAssignmentById(courseid)
+router.delete('/:assignmentId', requireAuthentication,async function (req, res, next) {
+    const assignmentId = parseInt(req.params.assignmentId);
+    const asssignment = await getAssignmentById(assignmentId)
     if(asssignment){
-        if(await isUserAdmin(req.user) || await isUserInstructorOfCourse(req.user, courseid)){
+        if(await isUserAdmin(req.user) || await isUserInstructorOfAssignment(req.user, assignmentId)){
             try {
-                const asssignment = await getAssignmentById(courseid)
+                const asssignment = await getAssignmentById(assignmentId)
                 if (asssignment) {
-                    if (await deleteAssignmentById(courseid)) {
+                    if (await deleteAssignmentById(assignmentId)) {
                         res.status(204).send();
                     } else {
                         res.status(500).send({
@@ -125,15 +125,15 @@ router.delete('/:courseid', requireAuthentication,async function (req, res, next
     }
 })
 
-router.get('/:courseid/submissions', requireAuthentication, async function (req, res, next) {
-    const courseId = parseInt(req.params.courseid)
-    if(await isUserInstructor(req.user) && await isUserInstructorOfCourse(req.user, courseId)){
+router.get('/:assignmentId/submissions', requireAuthentication, async function (req, res, next) {
+    const assignmentId = parseInt(req.params.assignmentId)
+    if(await isUserInstructor(req.user) && await isUserInstructorOfAssignment(req.user, assignmentId)){ 
         try {
             /*
              * Fetch page info, generate HATEOAS links for surrounding pages and then
              * send response.
              */
-            const submissionPage = await getSubmissionsPage((parseInt(req.query.page) || 1), parseInt(req.query.studentId))
+            const submissionPage = await getSubmissionsPage((parseInt(req.query.page) || 1), parseInt(assignmentId))
             submissionPage.links = {}
             if (submissionPage.page < submissionPage.totalPages) {
                 submissionPage.links.nextPage = `/submissions?page=${submissionPage.page + 1}`
@@ -156,15 +156,12 @@ router.get('/:courseid/submissions', requireAuthentication, async function (req,
     
 })
 
-router.post('/:courseid/submissions', requireAuthentication, upload.single('image'), async function (req, res, next) {
+router.post('/:assignmentId/submissions', requireAuthentication, upload.single('image'), async function (req, res, next) {
     // console.log("== req.file:", req.file)
     // console.log("== req.body:", req.body)
-    const courseId = parseInt(req.params.courseid)
-    // console.log(courseId)
-    if (isStudentAndAssignmentInCourse(req.body.studentId, req.body.assignmentId, courseId)
-        && isUserStudent
-        && req.user == req.body.studentId
-    ) {
+    const assignmentId = parseInt(req.params.assignmentId)
+    
+    if (await isStudentInAssignment(req.user, assignmentId) && req.user == req.body.studentId) {
         if (req.file && req.body && req.body.assignmentId && req.body.studentId) {
             const event = new Date()
             const photo = {

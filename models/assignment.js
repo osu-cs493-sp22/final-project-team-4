@@ -34,9 +34,25 @@ exports.getNumberOfAssignments = async function getNumberOfAssignments() {
 exports.insertNewAssignment = async function insertNewAssignment(assignment) {
   const db = getDbReference();
   const collection = db.collection("assignments");
+  const courseCollection = db.collection("courses")
 
-  user = extractValidFields(assignment, assignmentSchema);
-  const result = await collection.insertOne(assignment);
+  const newAssignment = extractValidFields(assignment, assignmentSchema);
+  const result = await collection.insertOne(newAssignment);
+
+  //add assignment to assignment list in course
+  const course = await courseCollection.find({ courseId: newAssignment.courseId }).toArray()
+
+  let newList = course[0].listassignments
+  newList.push(assignment.assignmentId)
+  const update = await courseCollection.updateOne(
+    { courseId: newAssignment.courseId },
+    {
+      $set: {
+        listassignments: newList
+      }
+    }
+  )
+
   return result.insertedId;
 };
 
@@ -51,15 +67,15 @@ exports.getAssignmentById = async function getAssignmentById(id) {
   }
 };
 
-exports.patchAssignmentById = async function patchAssignmentById(courseId, body) {
+exports.patchAssignmentById = async function patchAssignmentById(assignmentId, body) {
   const db = getDbReference()
   const collection = db.collection('assignments')
   const assignment = await collection.find({
-    courseId: courseId
+    assignmentId: assignmentId
   }).toArray()
   if (assignment[0]) {
     const result = await collection.updateOne(
-      { courseId: courseId },
+      { assignmentId: assignmentId },
       {
         $set: {
           description: body.description,
@@ -73,20 +89,39 @@ exports.patchAssignmentById = async function patchAssignmentById(courseId, body)
   }
 }
 
-exports.deleteAssignmentById = async function deleteAssignmentById(courseid) {
+exports.deleteAssignmentById = async function deleteAssignmentById(assignmentId) {
   const db = getDbReference()
   const collection = db.collection('assignments')
+  const courseCollection = db.collection("courses")
   const assignments = await collection.find({
-    courseId: courseid
+    assignmentId: assignmentId
   }).toArray()
   if (assignments[0]) {
+    //remove assignment from assignment list in course
+    const course = await courseCollection.find({ courseId: assignments[0].courseId }).toArray()
+
+    let newList = course[0].listassignments
+    const index = newList.indexOf(parseInt(assignmentId))
+    if (index > -1) {
+      newList.splice(index, 1)
+    }
+    const update = await courseCollection.updateOne(
+      { courseId: assignments[0].courseId },
+      {
+        $set: {
+          listassignments: newList
+        }
+      }
+    )
+    
+    //delete assignment
     const result = await collection.deleteOne(
-      { courseId: courseid },
+      { assignmentId: assignmentId },
     );
     if (result.deletedCount == 1) {
       return true
     } else {
-      return true
+      return false
     }
   } else {
     return false
@@ -113,13 +148,9 @@ exports.getAssignmentAndSubmissionById = async function getAssignmentAndSubmissi
 exports.isStudentAndAssignmentInCourse = async function isStudentAndAssignmentInCourse(studentId, assignmentId, courseId) {
   const db = getDbReference();
   const collection = db.collection("courses");
-  // console.log(courseId)
-  // console.log(studentId)
-  // console.log(assignmentId)
   const course = await collection.find({
     courseId: parseInt(courseId)
   }).toArray()
-  // console.log("==course", course[0])
 
   if (course && course[0].liststudent.includes(parseInt(studentId)) && course[0].listassignments.includes(parseInt(assignmentId))) {
     return true
