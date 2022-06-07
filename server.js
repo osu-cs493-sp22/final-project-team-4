@@ -128,6 +128,7 @@ connectToDb(function () {
     console.log("== Server is running on port", port);
 
 
+
 // TODO: FIXME:
 redisClient.connect().then(connectToDb(function () {
   app.listen(port, () => {
