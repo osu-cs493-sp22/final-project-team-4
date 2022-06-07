@@ -184,6 +184,28 @@ router.delete('/:courseid', requireAuthentication, async (req, res, next) => {
     
 })
 
+
+router.get('/:courseid/roster', requireAuthentication, async (req, res, next) => {
+    const courseId = parseInt(req.params.courseid)
+    if(isUserInstructorOfCourse(req.user, courseId)){
+        const studentList = await getStudentRoster(parseInt(req.params.courseid))
+        console.log("==studentList ", studentList)
+        
+    
+        const fields = ['userId', 'name', 'email'];
+        const opts = { fields };
+        try {
+            const csv = parse(studentList, opts);
+            console.log(csv);
+            res.status(200).send(csv)
+        } catch (err) {
+            console.error(err);
+            next()
+        }
+    }else{
+        res.status(403).send({ err: "request not made by authenticated user" })
+    }
+})
 //
 // GET /courses/{courseid}/students - Fetch a list of the students enrolled in the Course
 //
