@@ -4,12 +4,22 @@ const { getDbReference } = require('../lib/mongo')
 const { extractValidFields } = require('../lib/validation')
 
 const UserSchema = {
+    userId: { required: true },
     name: { required: true },
     email: { required: true, unique: true },
     password: { required: true },
     role: { required: true, default: "student" }, //can be 'admin', 'instructor', or 'student'
 }
 exports.UserSchema = UserSchema
+
+//get list of students
+exports.getUserList = async function getUserList(){
+    const db = getDbReference()
+    const collection = db.collection('users')
+    
+    const list = await collection.find({}).toArray()
+    return list
+}
 
 //add new user
 exports.insertNewUser = async function insertNewUser(user){
@@ -27,32 +37,38 @@ exports.getUserById = async function getUserById(userid){
     const collection = db.collection('users')
     const classCollection = db.collection('courses')
     const users = await collection.find({
-        _id: new ObjectId(userid)
+        userId: userid
     }).toArray()
     if(users[0]){ //if a user exists
         if(users[0].role === "instructor"){ //if its an instructor add courses they teach
             let curClasses = []
             const classes = await classCollection.find().toArray() // get list of classes
             classes.forEach(eachClass => {
-                if (users[0]._id == eachClass.instructorId){
-                    curClasses.push(eachClass._id)
+                // console.log("==eachClass", eachClass)
+                if (users[0].userId == eachClass.instructorId){
+                    curClasses.push(eachClass.courseId)
+                    // console.log("==pushed==")
                 }
             })
             users[0].classes = curClasses
             return users[0]
         }
         
-        if(users[0].role === "student"){ //if user is student add all their classes
+        else if(users[0].role === "student"){ //if user is student add all their classes
             let curClasses = []
             const classes = await classCollection.find().toArray() //has a list of all classes
             classes.forEach(eachClass => { //looks at each class
-                eachClass.students.forEach(student => { //looks all students in student list
-                    if(users[0]._id == student){
-                        curClasses.push(student)
+                eachClass.liststudent.forEach(student => { //looks all students in student list
+                    if(users[0].userId == student){
+                        curClasses.push(eachClass.courseId)
                     }
                 })
             });
             users[0].classes = curClasses
+            return users[0]
+        }
+
+        else{// if its an admin
             return users[0]
         }
     }else{
@@ -60,7 +76,7 @@ exports.getUserById = async function getUserById(userid){
     }
 }
 
-exports.getUserByEmail = async function(userEmail){
+exports.getUserByEmail = async function getUserByEmail(userEmail){
     const db = getDbReference()
     const collection = db.collection('users')
     const users = await collection.find({
@@ -69,7 +85,7 @@ exports.getUserByEmail = async function(userEmail){
     return users[0]
 }
 
-exports.bulkInsertNewUsers = async function(users) {
+exports.bulkInsertNewUsers = async function bulkInsertNewUsers(users) {
     const db = getDbReference()
     const collection = db.collection('users')
     const result = await collection.insertMany(users)

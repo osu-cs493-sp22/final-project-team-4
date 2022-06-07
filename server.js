@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+
 const redis = require("redis");
 const jwt = require("jsonwebtoken");
 
@@ -14,17 +15,17 @@ const port = process.env.PORT || 8000;
  */
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT || "6379";
-const redisClient = redis.createClient(redisHost, redisPort);
+const redisClient = redis.createClient({url: `redis://${redisHost}:${redisPort}`})
 const rateLimitWindowMaxRequests = 10; //per ip
 const rateLimitWindowMilliseconds = 60000; // 1 minute
 const authUserRateLimitWindowMaxRequests = 30; //per user
 
-function manageBucket(maxRequest, perBasis) {
+async function manageBucket(perBasis, maxRequest) {
    let tokenBucket;
     try {
     tokenBucket = await redisClient.hGetAll(perBasis);
   } catch (error) {
-    next();
+    console.log("error")
     return;
   }
 
@@ -45,38 +46,66 @@ function manageBucket(maxRequest, perBasis) {
     tokenBucket.tokens -= 1;
     await redisClient.hSet(perBasis, [
       ["tokens", tokenBucket.tokens],
-      ["last", tokenBucket.last],
-      next(),
+      ["last", tokenBucket.last]
     ]);
+    return
   } else {
     await redisClient.hSet(perBasis, [
       ["tokens", tokenBucket.tokens],
       ["last", tokenBucket.last],
     ]);
-    res.status(429).send({
-      err: "too many requests per minute",
-    });
+    console.log("returning error")
+    return 1
   }
 }
 
 
 async function rateLimit(req, res, next) {
   const authHeader = req.get("authorization") || "";
+  console.log("==authHeader: ", authHeader )
   const authParts = authHeader.split(" ");
-  const token = authParts[0] === "Bearer" ? authParts[1] : nullS;
-  const payload = jwt.verify(token, "SuperSecret");
-  console.log("== payload:", payload);
-  const userId = payload.sub;
+  const token = authParts[0] === "Bearer" ? authParts[1] : null;
+  console.log("==token",token)
   const ip = req.ip;
-
-  if (userId) {
-   manageBucket(userId, authUserRateLimitWindowMaxRequests)
-  } else {
-   manageBucket(ip, rateLimitWindowMaxRequests)
+  if (token){
+    const payload = jwt.verify(token, "SuperSecret");
+    console.log("== payload:", payload);
+    const userId = payload.sub;
+    console.log('==userid:', userId)
+    if (userId) {
+      console.log("here")
+      if(await manageBucket(`${userId}`, authUserRateLimitWindowMaxRequests) == 1){
+        console.log("too many requests")
+        res.status(429).send({
+          err: "Too many requests per minute"
+        })
+      }else{
+        next()
+      }
+    }
+    else {
+      if(await manageBucket(ip, rateLimitWindowMaxRequests) == 1){
+        console.log("too many requests")
+        res.status(429).send({
+          err: "Too many requests per minute"
+        })
+      }else{
+        next()
+      }
+    }
+  }else{
+    if(await manageBucket(ip, rateLimitWindowMaxRequests) == 1){
+      console.log("too many requests")
+      res.status(429).send({
+        err: "Too many requests per minute"
+      })
+    }else {
+      next()
+    }
   }
 }
 
-app.use(rateLimit);
+//app.use(rateLimit);
 /*
  * Morgan is a popular logger.
  */
@@ -98,15 +127,22 @@ app.use("*", function (req, res, next) {
   });
 });
 
-connectToDb(function () {
-  app.listen(port, function () {
-    console.log("== Server is running on port", port);
-  });
-});
+// connectToDb(function () {
+//   app.listen(port, function () {
+//     console.log("== Server is running on port", port);
+//   });
+// });
 
 // TODO: FIXME:
-// redisClient.connect().then(function () {
+redisClient.connect().then(connectToDb(function () {
+  app.listen(port, () => {
+    console.log("== server is running on port:", port);
+  });
+}));
+
+// // // TODO: FIXME:
+// redisClient.connect().then(connectToDb(function () {
 //   app.listen(port, () => {
 //     console.log("== server is running on port:", port);
 //   });
-// });
+// }));

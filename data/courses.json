@@ -1,15 +1,15 @@
 [
     {
-        "courseid": 1111,
+        "courseId": 1,
         "subject": "CS",
         "number": "450",
         "title": "Computer Architecture",
         "term": "Spring 2022",
-        "instructorid": 123,
+        "instructorId": 2,
         "liststudent": [
-            111,
-            333,
-            555
+            7,
+            8,
+            9
         ],
         "listassignments": [
             1,
@@ -18,21 +18,19 @@
         ]
     },
     {
-        "courseid": 2222,
+        "courseId": 2,
         "subject": "CS",
         "number": "101",
         "title": "Intro to Computer Science",
         "term": "Spring 2022",
-        "instructorid": 123,
+        "instructorId": 3,
         "liststudent": [
-            111,
-            222,
-            333,
-            777
+            7,
+            8,
+            9,
+            11
         ],
         "listassignments": [
-            1,
-            2,
             3,
             4
         ]
