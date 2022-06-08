@@ -127,7 +127,7 @@ router.delete('/:assignmentId', requireAuthentication,async function (req, res, 
 
 router.get('/:assignmentId/submissions', requireAuthentication, async function (req, res, next) {
     const assignmentId = parseInt(req.params.assignmentId)
-    if(await isUserInstructor(req.user) && await isUserInstructorOfAssignment(req.user, assignmentId)){ 
+    if(await isUserAdmin(req.user) || await isUserInstructorOfAssignment(req.user, assignmentId)){ 
         try {
             /*
              * Fetch page info, generate HATEOAS links for surrounding pages and then
@@ -160,7 +160,8 @@ router.post('/:assignmentId/submissions', requireAuthentication, upload.single('
     // console.log("== req.file:", req.file)
     // console.log("== req.body:", req.body)
     const assignmentId = parseInt(req.params.assignmentId)
-    
+    console.log(await isStudentInAssignment(req.user, assignmentId))
+    console.log(req.user == req.body.studentId)
     if (await isStudentInAssignment(req.user, assignmentId) && req.user == req.body.studentId) {
         if (req.file && req.body && req.body.assignmentId && req.body.studentId) {
             const event = new Date()
